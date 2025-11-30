@@ -2,8 +2,8 @@
 'use client';
 
 import { useState } from 'react';
-import Sidebar from '@/components/admin/Sidebar';
-import TopBar from '@/components/admin/Topbar';
+import Sidebar from '@/components/admin/SideBar';
+import TopBar from '@/components/admin/TopBar'; 
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
