@@ -1,0 +1,41 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Produk {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  deskripsi String?
+  harga     Decimal  @db.Decimal(15,2)
+  gambarUrl String?
+  createdAt DateTime @default(now())
+}
+
+model Pendapatan {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  tanggal    DateTime
+  jumlah     Decimal  @db.Decimal(15,2)
+  keterangan String
+}
+
+model Pengeluaran {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  tanggal    DateTime
+  jumlah     Decimal  @db.Decimal(15,2)
+  keterangan String
+}
