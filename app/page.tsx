@@ -10,7 +10,7 @@ export default async function Home() {
   const products = await prisma.produk.findMany({ orderBy: { createdAt: 'desc' } });
 
   // Ganti nomor ini dengan nomor WA asli Depot Anda
-  const whatsappNumber = "6281234567890"; 
+  const whatsappNumber = "6281367995046"; 
   const waLink = `https://wa.me/${whatsappNumber}?text=Halo%20Nazarel%20Qua,%20saya%20ingin%20memesan%20air%20minum.`;
 
   return (
@@ -74,7 +74,7 @@ export default async function Home() {
                   </div>
                   <div>
                     <h4 className="font-bold text-gray-900">Lokasi Kami</h4>
-                    <p className="text-gray-600">Jl. Contoh No. 123, Kelurahan Air Bersih, Kecamatan Sejahtera.</p>
+                    <p className="text-gray-600">Maur Baru, Kec. Rupit, Kab. Musi Rawas Utara, Sumatera Selatan 31654</p>
                   </div>
                 </div>
 
@@ -84,7 +84,7 @@ export default async function Home() {
                   </div>
                   <div>
                     <h4 className="font-bold text-gray-900">Jam Operasional</h4>
-                    <p className="text-gray-600">Senin - Sabtu: 07.00 - 20.00 WIB</p>
+                    <p className="text-gray-600">Senin - Minggu: 07.00 - 21.00 WIB</p>
                   </div>
                 </div>
               </div>
