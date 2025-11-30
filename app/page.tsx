@@ -1,140 +1,167 @@
 // app/page.tsx
 import { prisma } from '@/lib/prisma';
 import AnimatedHero from '@/components/AnimatedHero';
-import PublicNavbar from '@/components/PublicNavbar';
-import { MapPin, Phone, Clock, ArrowRight } from 'lucide-react'; // Pastikan lucide-react terinstall
+import PublicLayout from '@/components/PublicLayout'; // Import Layout yang baru dibuat
+import { MapPin, Phone, Clock, ShieldCheck, Droplets, Truck, Star } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  const products = await prisma.produk.findMany({ orderBy: { createdAt: 'desc' } });
+  const products = await prisma.produk.findMany({
+    orderBy: { createdAt: 'desc' }
+  });
 
-  // Ganti nomor ini dengan nomor WA asli Depot Anda
-  const whatsappNumber = "6281367995046"; 
-  const waLink = `https://wa.me/${whatsappNumber}?text=Halo%20Nazarel%20Qua,%20saya%20ingin%20memesan%20air%20minum.`;
+  const whatsappNumber = "6281367995046";
+  const waLink = (namaProduk?: string) => {
+    const text = namaProduk
+      ? `Halo Nazarel Qua, saya ingin memesan *${namaProduk}*.`
+      : `Halo Nazarel Qua, saya ingin memesan air minum.`;
+    return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
+  };
 
   return (
-    <main className="min-h-screen bg-gray-50 text-gray-800 pt-16">
-      <PublicNavbar />
+    // GUNAKAN PUBLIC LAYOUT DI SINI
+    <PublicLayout>
 
       {/* Hero Section */}
       <section id="home">
         <AnimatedHero />
       </section>
 
-      {/* Katalog Section */}
-      <section id="katalog" className="container mx-auto py-16 px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900">Produk Pilihan Kami</h2>
-          <p className="text-gray-500 mt-2">Kualitas air terbaik untuk kesegaran keluarga Anda</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {products.map((prod) => (
-            <div key={prod.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition duration-300 overflow-hidden border border-gray-100 group">
-              <div className="h-56 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center relative overflow-hidden">
-                 {prod.gambarUrl ? (
-                   <img src={prod.gambarUrl} alt={prod.nama} className="h-full w-full object-cover group-hover:scale-105 transition duration-500" />
-                 ) : (
-                   <span className="text-blue-300 text-4xl font-bold">NQ</span>
-                 )}
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-800">{prod.nama}</h3>
-                <p className="text-gray-600 mt-2 text-sm line-clamp-2">{prod.deskripsi || 'Air minum murni diproses higienis.'}</p>
-                <div className="mt-4 flex justify-between items-center">
-                  <p className="text-blue-600 font-bold text-lg">Rp {prod.harga.toNumber().toLocaleString('id-ID')}</p>
-                  <a href={waLink} target="_blank" className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full hover:bg-green-200 transition">
-                    Pesan
-                  </a>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Tentang Kami & Lokasi Section */}
-      <section id="tentang-kami" className="bg-white py-16">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row gap-12 items-center">
-            
-            {/* Informasi Teks */}
-            <div className="w-full md:w-1/2 space-y-6">
-              <h2 className="text-3xl font-bold text-blue-900">Tentang Nazarel Qua</h2>
-              <p className="text-gray-600 leading-relaxed text-lg">
-                Depot Air Minum Nazarel Qua berkomitmen menyediakan air minum yang sehat, higienis, dan segar untuk masyarakat. 
-                Menggunakan teknologi filtrasi modern dan sterilisasi ultraviolet untuk menjamin kemurnian setiap tetes air.
-              </p>
-              
-              <div className="space-y-4 pt-4">
-                <div className="flex items-start gap-4">
-                  <div className="bg-blue-100 p-3 rounded-full text-blue-600">
-                    <MapPin size={24} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900">Lokasi Kami</h4>
-                    <p className="text-gray-600">Maur Baru, Kec. Rupit, Kab. Musi Rawas Utara, Sumatera Selatan 31654</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="bg-blue-100 p-3 rounded-full text-blue-600">
-                    <Clock size={24} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900">Jam Operasional</h4>
-                    <p className="text-gray-600">Senin - Minggu: 07.00 - 21.00 WIB</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-6">
-                <a 
-                  href={waLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-green-700 transition shadow-lg shadow-green-200 transform hover:-translate-y-1"
-                >
-                  <Phone size={24} />
-                  Pesan via WhatsApp
-                </a>
-              </div>
-            </div>
-
-            {/* Maps / Visual Lokasi */}
-            <div className="w-full md:w-1/2 h-80 bg-gray-200 rounded-2xl overflow-hidden shadow-lg relative">
-              {/* Embed Google Maps - Ganti src dengan embed map lokasi asli Anda */}
-              {/* <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d127641.0506385458!2d98.591636!3d3.595195!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x303131cc1c3eb2fd%3A0x23d431c8a6908262!2sMedan%2C%20North%20Sumatra!5e0!3m2!1sen!2sid!4v1625050000000!5m2!1sen!2sid" 
-                width="100%" 
-                height="100%" 
-                style={{ border: 0 }} 
-                allowFullScreen={true} 
-                loading="lazy"
-                className="absolute inset-0 w-full h-full"
-              ></iframe> */}
-              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3985.149988611509!2d102.863102!3d-2.7719429!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e304b139e0c3edf%3A0xbaee141b1049ede5!2sNazarel%20Qua!5e0!3m2!1sid!2sid!4v1764495166470!5m2!1sid!2sid"
-              width="600" 
-              height="450" 
-              style={{ border: 0 }} 
-              allowFullScreen={ true } 
-              loading="lazy" 
-              className="absolute inset-0 w-full h-full"
-              ></iframe>
-            </div>
-
+      {/* Keunggulan Section */}
+      <section className="py-12 bg-white relative overflow-hidden border-b border-gray-100">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <FeatureCard
+              icon={<ShieldCheck size={32} className="text-blue-600" />}
+              title="Higienis & Steril"
+              desc="Diproses melalui filtrasi bertahap dan sterilisasi UV tingkat tinggi."
+            />
+            <FeatureCard
+              icon={<Droplets size={32} className="text-blue-600" />}
+              title="Murni & Segar"
+              desc="Sumber air terpilih yang menjamin kesegaran alami setiap tetesnya."
+            />
+            <FeatureCard
+              icon={<Truck size={32} className="text-blue-600" />}
+              title="Layanan Cepat"
+              desc="Pesan antar yang cepat dan ramah langsung ke depan pintu Anda."
+            />
           </div>
         </div>
       </section>
 
-      {/* Footer Simple */}
-      <footer className="bg-gray-900 text-gray-400 py-8 mt-auto">
-        <div className="container mx-auto px-4 text-center">
-          <p>© {new Date().getFullYear()} Depot Air Minum Nazarel Qua.</p>
-          <p className="text-sm mt-2">Melayani dengan Sepenuh Hati.</p>
+      {/* Katalog Section */}
+      <section id="katalog" className="py-20 bg-slate-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <span className="text-blue-600 font-semibold tracking-wide uppercase text-sm">Katalog Produk</span>
+            <h2 className="text-4xl font-bold text-slate-900 mt-2">Pilihan Terbaik Keluarga</h2>
+            <div className="w-20 h-1 bg-blue-600 mx-auto mt-4 rounded-full"></div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {products.map((prod) => (
+              <div key={prod.id} className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group border border-slate-100 flex flex-col">
+                <div className="h-64 bg-gradient-to-b from-blue-50 to-white relative flex items-center justify-center overflow-hidden">
+                  <div className="absolute top-4 right-4 bg-white/80 backdrop-blur px-3 py-1 rounded-full shadow-sm z-10">
+                    <div className="flex items-center gap-1 text-yellow-500 text-xs font-bold">
+                      <Star size={12} fill="currentColor" /> 5.0
+                    </div>
+                  </div>
+                  {prod.gambarUrl ? (
+                    <img src={prod.gambarUrl} alt={prod.nama} className="h-full w-full object-cover group-hover:scale-110 transition duration-700" />
+                  ) : (
+                    <div className="text-center">
+                      <Droplets size={64} className="text-blue-200 mx-auto mb-2" />
+                      <span className="text-blue-300 font-bold text-lg">Nazarel Qua</span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                  <h3 className="text-xl font-bold text-slate-800 mb-2">{prod.nama}</h3>
+                  <p className="text-slate-500 text-sm line-clamp-3 mb-6 flex-1">
+                    {prod.deskripsi || 'Air minum murni berkualitas tinggi.'}
+                  </p>
+                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-auto">
+                    <div>
+                      <p className="text-xs text-slate-400 mb-1">Harga</p>
+                      <p className="text-2xl font-bold text-blue-600">Rp {prod.harga.toNumber().toLocaleString('id-ID')}</p>
+                    </div>
+                    <a href={waLink(prod.nama)} target="_blank" className="bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl font-medium transition shadow-lg shadow-green-200 flex items-center gap-2 transform active:scale-95">
+                      <span>Pesan</span> <Phone size={16} />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </footer>
-    </main>
+      </section>
+
+      {/* Tentang Kami & Lokasi Section */}
+      <section id="tentang-kami" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row gap-16 items-center">
+            <div className="w-full lg:w-1/2 space-y-8">
+              <div>
+                <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">Tentang Kami</span>
+                <h2 className="text-4xl font-bold text-slate-900 mt-2 mb-6">Mengapa Nazarel Qua?</h2>
+                <p className="text-slate-600 leading-relaxed text-lg text-justify">
+                  Depot Air Minum <strong>Nazarel Qua</strong> hadir di Maur Baru dengan komitmen menyediakan air minum yang sehat, higienis, dan segar.
+                  Kami menggunakan teknologi filtrasi modern serta sterilisasi ultraviolet (UV) untuk menjamin kemurnian setiap tetes air.
+                </p>
+              </div>
+              <div className="grid gap-6">
+                <InfoItem icon={<MapPin className="text-blue-600" />} title="Lokasi Strategis" desc="Maur Baru, Kec. Rupit, Kab. Musi Rawas Utara, Sumatera Selatan 31654" />
+                <InfoItem icon={<Clock className="text-blue-600" />} title="Jam Operasional" desc="Buka setiap hari: 07.00 - 21.00 WIB" />
+              </div>
+              <div className="pt-4">
+                <a href={waLink()} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-700 transition shadow-xl shadow-blue-200 hover:-translate-y-1">
+                  <Phone size={24} /> Hubungi Kami di WhatsApp
+                </a>
+              </div>
+            </div>
+            <div className="w-full lg:w-1/2">
+              <div className="bg-slate-100 p-2 rounded-3xl shadow-2xl rotate-1 hover:rotate-0 transition duration-500">
+                <div className="h-[450px] w-full rounded-2xl overflow-hidden relative border border-slate-200">
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3985.149988611509!2d102.863102!3d-2.7719429!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e304b139e0c3edf%3A0xbaee141b1049ede5!2sNazarel%20Qua!5e0!3m2!1sid!2sid!4v1764495166470!5m2!1sid!2sid"
+                    width="100%" height="100%" style={{ border: 0 }} allowFullScreen={true} loading="lazy"
+                    className="absolute inset-0 w-full h-full grayscale hover:grayscale-0 transition duration-700"
+                  ></iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </PublicLayout>
+  );
+}
+
+// Komponen Kecil Helper UI
+function FeatureCard({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
+  return (
+    <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 flex items-start gap-4 hover:shadow-md transition">
+      <div className="bg-white p-3 rounded-lg shadow-sm">{icon}</div>
+      <div>
+        <h4 className="font-bold text-slate-800 text-lg">{title}</h4>
+        <p className="text-slate-500 text-sm mt-1">{desc}</p>
+      </div>
+    </div>
+  );
+}
+
+function InfoItem({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
+  return (
+    <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+      <div className="bg-white p-3 rounded-full shadow-sm shrink-0">{icon}</div>
+      <div>
+        <h4 className="font-bold text-slate-900">{title}</h4>
+        <p className="text-slate-600 text-sm leading-relaxed">{desc}</p>
+      </div>
+    </div>
   );
 }
