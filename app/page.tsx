@@ -125,10 +125,17 @@ export default async function Home() {
             <div className="w-full lg:w-1/2">
               <div className="bg-slate-100 p-2 rounded-3xl shadow-2xl rotate-1 hover:rotate-0 transition duration-500">
                 <div className="h-[450px] w-full rounded-2xl overflow-hidden relative border border-slate-200">
-                  <iframe
+                  {/* <iframe
                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3985.149988611509!2d102.863102!3d-2.7719429!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e304b139e0c3edf%3A0xbaee141b1049ede5!2sNazarel%20Qua!5e0!3m2!1sid!2sid!4v1764495166470!5m2!1sid!2sid"
                     width="100%" height="100%" style={{ border: 0 }} allowFullScreen={true} loading="lazy"
                     className="absolute inset-0 w-full h-full grayscale hover:grayscale-0 transition duration-700"
+                  ></iframe> */}
+                  <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3694.566003219763!2d102.86049047460506!3d-2.7719851972050975!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e304b139e0c3edf%3A0xbaee141b1049ede5!2sNazarel%20Qua!5e1!3m2!1sid!2sid!4v1764504784371!5m2!1sid!2sid" width="600" 
+                  height="450" 
+                  style={{ border: 0 }} 
+                  allowFullScreen={true} 
+                  loading="lazy"
+                  className="absolute inset-0 w-full h-full grayscale hover:grayscale-0 transition duration-700" 
                   ></iframe>
                 </div>
               </div>
