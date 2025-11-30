@@ -1,7 +1,13 @@
 // app/api/upload/route.ts
 import { NextResponse } from 'next/server';
-import path from 'path';
-import { writeFile, mkdir } from 'fs/promises';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Konfigurasi Cloudinary
+cloudinary.config({
+    cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(req: Request) {
     try {
@@ -12,22 +18,28 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'No files received.' }, { status: 400 });
         }
 
-        const buffer = Buffer.from(await file.arrayBuffer());
+        // Convert file ke Buffer
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
 
-        // Ganti spasi dengan dash agar aman di URL
-        const filename = Date.now() + '_' + file.name.replaceAll(" ", "_");
+        // Upload ke Cloudinary via Stream
+        const uploadResult: any = await new Promise((resolve, reject) => {
+            cloudinary.uploader.upload_stream(
+                {
+                    folder: 'nazarel-qua-products', // Nama folder di Cloudinary
+                },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            ).end(buffer);
+        });
 
-        // Pastikan folder public/uploads ada
-        const uploadDir = path.join(process.cwd(), 'public/uploads');
-        await mkdir(uploadDir, { recursive: true });
+        // Berhasil, kembalikan URL gambar yang valid
+        return NextResponse.json({ url: uploadResult.secure_url });
 
-        // Simpan file
-        await writeFile(path.join(uploadDir, filename), buffer);
-
-        // Return URL public
-        return NextResponse.json({ url: `/uploads/${filename}` });
     } catch (error) {
-        console.log("Error uploading file: ", error);
-        return NextResponse.json({ error: 'Failed to upload file.' }, { status: 500 });
+        console.error("Upload Error:", error);
+        return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 });
     }
 }
