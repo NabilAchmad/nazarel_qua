@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
-// Validasi Input
 const testimoniSchema = z.object({
     nama: z.string().min(1, "Nama wajib diisi"),
     pekerjaan: z.string().optional(),
@@ -11,12 +10,16 @@ const testimoniSchema = z.object({
     komentar: z.string().min(5, "Komentar minimal 5 karakter"),
 });
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
-        // Ambil 6 testimoni terbaru
+        // Cek apakah ada parameter ?mode=admin
+        const { searchParams } = new URL(req.url);
+        const isAdmin = searchParams.get('mode') === 'admin';
+
         const data = await prisma.testimoni.findMany({
             orderBy: { createdAt: 'desc' },
-            take: 6
+            // Jika admin, ambil semua. Jika public, ambil 6 saja.
+            take: isAdmin ? undefined : 6
         });
         return NextResponse.json(data);
     } catch (error) {
@@ -25,6 +28,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+    // ... (Sama seperti sebelumnya, tidak berubah)
     try {
         const body = await req.json();
         const validatedData = testimoniSchema.parse(body);

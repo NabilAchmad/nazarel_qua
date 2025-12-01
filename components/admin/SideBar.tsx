@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, Wallet, FileBarChart, LogOut, X } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Wallet, FileBarChart, LogOut, X, MessageSquare } from 'lucide-react';
 import clsx from 'clsx';
 
 interface SidebarProps {
@@ -16,6 +16,7 @@ const menuItems = [
     { name: 'Katalog Produk', href: '/admin/katalog', icon: ShoppingBag },
     { name: 'Keuangan', href: '/admin/keuangan', icon: Wallet },
     { name: 'Laporan', href: '/admin/laporan', icon: FileBarChart },
+    { name: 'Testimoni', href: '/admin/testimoni', icon: MessageSquare },
 ];
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {

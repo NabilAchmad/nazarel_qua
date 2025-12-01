@@ -29,7 +29,6 @@ export default function TestimonialSection({ initialData }: { initialData: any[]
 
             if (res.ok) {
                 const newReview = await res.json();
-                // Update UI langsung tanpa reload
                 setReviews([newReview, ...reviews]);
                 setIsModalOpen(false);
                 setFormData({ nama: '', pekerjaan: '', rating: 5, komentar: '' });
@@ -103,7 +102,7 @@ export default function TestimonialSection({ initialData }: { initialData: any[]
                             <X size={24} />
                         </button>
 
-                        <h3 className="text-xl font-bold text-gray-800 mb-1">Tulis Pengalaman Anda</h3>
+                        <h3 className="text-xl font-bold text-gray-900 mb-1">Tulis Pengalaman Anda</h3>
                         <p className="text-sm text-gray-500 mb-6">Masukan Anda sangat berarti bagi kami.</p>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
@@ -127,20 +126,37 @@ export default function TestimonialSection({ initialData }: { initialData: any[]
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                                <input required type="text" className="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-grey-800"
-                                    value={formData.nama} onChange={e => setFormData({ ...formData, nama: e.target.value })} />
+                                <input
+                                    required
+                                    type="text"
+                                    className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 placeholder:text-gray-400"
+                                    placeholder="Masukkan nama anda"
+                                    value={formData.nama}
+                                    onChange={e => setFormData({ ...formData, nama: e.target.value })}
+                                />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Pekerjaan (Opsional)</label>
-                                <input type="text" placeholder="Contoh: Karyawan / Ibu Rumah Tangga" className="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-grey-800"
-                                    value={formData.pekerjaan} onChange={e => setFormData({ ...formData, pekerjaan: e.target.value })} />
+                                <input
+                                    type="text"
+                                    placeholder="Contoh: Karyawan / Ibu Rumah Tangga"
+                                    className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 placeholder:text-gray-400"
+                                    value={formData.pekerjaan}
+                                    onChange={e => setFormData({ ...formData, pekerjaan: e.target.value })}
+                                />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Komentar</label>
-                                <textarea required rows={3} className="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={formData.komentar} onChange={e => setFormData({ ...formData, komentar: e.target.value })} />
+                                <textarea
+                                    required
+                                    rows={3}
+                                    placeholder="Ceritakan pengalaman anda..."
+                                    className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 placeholder:text-gray-400"
+                                    value={formData.komentar}
+                                    onChange={e => setFormData({ ...formData, komentar: e.target.value })}
+                                />
                             </div>
 
                             <button
