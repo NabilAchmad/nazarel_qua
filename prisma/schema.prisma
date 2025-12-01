@@ -39,3 +39,12 @@ model Pengeluaran {
   jumlah     Decimal  @db.Decimal(15,2)
   keterangan String
 }
+
+model Testimoni {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  pekerjaan String?  // Contoh: Ibu Rumah Tangga, Mahasiswa (Opsional)
+  rating    Int      @default(5)
+  komentar  String
+  createdAt DateTime @default(now())
+}
