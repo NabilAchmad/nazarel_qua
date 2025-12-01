@@ -127,13 +127,13 @@ export default function TestimonialSection({ initialData }: { initialData: any[]
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                                <input required type="text" className="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                <input required type="text" className="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-grey-800"
                                     value={formData.nama} onChange={e => setFormData({ ...formData, nama: e.target.value })} />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Pekerjaan (Opsional)</label>
-                                <input type="text" placeholder="Contoh: Karyawan / Ibu Rumah Tangga" className="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                <input type="text" placeholder="Contoh: Karyawan / Ibu Rumah Tangga" className="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-grey-800"
                                     value={formData.pekerjaan} onChange={e => setFormData({ ...formData, pekerjaan: e.target.value })} />
                             </div>
 
