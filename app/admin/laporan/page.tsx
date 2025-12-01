@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Download } from 'lucide-react';
+import { Download, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function Laporan() {
@@ -22,11 +22,33 @@ export default function Laporan() {
         });
     }, []);
 
+    // Hitung total untuk ditampilkan di UI
+    const totalPendapatan = data.reduce((acc, curr) => acc + curr.pendapatan, 0);
+    const totalPengeluaran = data.reduce((acc, curr) => acc + curr.pengeluaran, 0);
+    const totalLaba = totalPendapatan - totalPengeluaran;
+
     const handleExport = () => {
-        const headers = ['Tanggal', 'Pendapatan', 'Pengeluaran'];
-        const rows = data.map(d => [d.name, d.pendapatan, d.pengeluaran]);
+        // 1. Header Kolom
+        const headers = ['Tanggal', 'Pendapatan', 'Pengeluaran', 'Laba Harian'];
+        
+        // 2. Data Baris Harian
+        const rows = data.map(d => [
+            `"${d.name}"`, // Pakai kutip biar format tanggal aman di Excel
+            d.pendapatan, 
+            d.pengeluaran, 
+            d.pendapatan - d.pengeluaran
+        ]);
+
+        // 3. Tambahkan Baris Kosong sebagai pemisah
+        rows.push(['', '', '', '']); 
+        
+        // 4. Tambahkan Baris TOTAL di bawah
+        rows.push(['TOTAL PERIODE INI', totalPendapatan, totalPengeluaran, totalLaba]);
+
+        // 5. Buat CSV
         const csvContent = "data:text/csv;charset=utf-8,"
             + [headers.join(','), ...rows.map(e => e.join(','))].join("\n");
+            
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
@@ -40,16 +62,44 @@ export default function Laporan() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800">Laporan Keuangan</h1>
-                    <p className="text-gray-500 text-sm">Grafik pendapatan dan pengeluaran 7 hari aktif terakhir.</p>
+                    <p className="text-gray-500 text-sm">Grafik & Rekapitulasi 7 Hari Terakhir</p>
                 </div>
                 <button onClick={handleExport} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition">
-                    <Download size={18} /> Ekspor CSV
+                    <Download size={18} /> Ekspor CSV Lengkap
                 </button>
             </div>
 
+            {/* KARTU RINGKASAN TOTAL (Visualisasi Langsung) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
+                    <div className="bg-green-100 p-2 rounded-lg text-green-600"><TrendingUp size={20}/></div>
+                    <div>
+                        <p className="text-xs text-gray-500">Total Pendapatan</p>
+                        <p className="font-bold text-gray-800">Rp {totalPendapatan.toLocaleString('id-ID')}</p>
+                    </div>
+                </div>
+                <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
+                    <div className="bg-red-100 p-2 rounded-lg text-red-600"><TrendingDown size={20}/></div>
+                    <div>
+                        <p className="text-xs text-gray-500">Total Pengeluaran</p>
+                        <p className="font-bold text-gray-800">Rp {totalPengeluaran.toLocaleString('id-ID')}</p>
+                    </div>
+                </div>
+                <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
+                    <div className="bg-blue-100 p-2 rounded-lg text-blue-600"><Wallet size={20}/></div>
+                    <div>
+                        <p className="text-xs text-gray-500">Laba Bersih</p>
+                        <p className={`font-bold ${totalLaba >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                            Rp {totalLaba.toLocaleString('id-ID')}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* GRAFIK */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-[400px]">
                 {data.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
@@ -61,6 +111,7 @@ export default function Laporan() {
                             <Tooltip
                                 cursor={{ fill: '#f3f4f6' }}
                                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                formatter={(value: number) => `Rp ${value.toLocaleString('id-ID')}`}
                             />
                             <Legend iconType="circle" />
                             <Bar dataKey="pendapatan" fill="#2563eb" name="Pendapatan" radius={[4, 4, 0, 0]} barSize={40} />
@@ -77,7 +128,7 @@ export default function Laporan() {
                 <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
                     <h3 className="font-bold text-blue-800 mb-2">Tips</h3>
                     <p className="text-sm text-blue-700 leading-relaxed">
-                        Pastikan untuk selalu mencatat pengeluaran operasional sekecil apapun agar perhitungan laba bersih akurat. Laporan ini membantu memantau tren penjualan mingguan.
+                        Data CSV yang diunduh kini mencakup <strong>Total Pendapatan</strong>, <strong>Pengeluaran</strong>, dan <strong>Laba Bersih</strong> pada baris paling bawah tabel untuk memudahkan rekapitulasi Anda.
                     </p>
                 </div>
             </div>
