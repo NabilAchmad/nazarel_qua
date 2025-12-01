@@ -2,7 +2,8 @@
 import { prisma } from '@/lib/prisma';
 import PublicLayout from '@/components/PublicLayout';
 import AnimatedHero from '@/components/AnimatedHero';
-import TestimonialSection from '@/components/TestimonialSection'; // Import Komponen Baru
+import TestimonialSection from '@/components/TestimonialSection';
+import ProductCard from '@/components/ProductCard'; // IMPORT KOMPONEN BARU
 import {
   MapPin, Clock, ShieldCheck, Droplets, Truck,
   Star, ChevronRight, MessageCircle, CheckCircle, HelpCircle
@@ -16,8 +17,7 @@ export default async function Home() {
     orderBy: { createdAt: 'desc' }
   });
 
-  // 2. Mengambil Testimoni Terbaru dari database (NEW)
-  // Pastikan Anda sudah menjalankan migration: npx prisma migrate dev
+  // 2. Mengambil Testimoni Terbaru dari database
   const reviews = await prisma.testimoni.findMany({
     orderBy: { createdAt: 'desc' },
     take: 6
@@ -32,9 +32,8 @@ export default async function Home() {
   return (
     <PublicLayout>
 
-      {/* 1. HERO SECTION DENGAN AKSEN MODERN */}
+      {/* 1. HERO SECTION */}
       <section id="home" className="relative bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-400 pt-10 pb-20 overflow-hidden">
-        {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-white/20 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-cyan-300/20 rounded-full blur-3xl"></div>
@@ -42,10 +41,6 @@ export default async function Home() {
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="w-full md:w-1/2 text-white space-y-6 animate-in slide-in-from-left duration-700">
-            {/* <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-1.5 rounded-full text-sm font-medium text-cyan-50">
-                <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                Depot Air Minum Terpercaya di Muratara
-              </div> */}
               <h1 className="text-5xl md:text-6xl font-extrabold leading-tight tracking-tight">
                 Kesegaran Murni <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-white">
@@ -64,7 +59,6 @@ export default async function Home() {
                 </a>
               </div>
 
-              {/* Stats Kecil */}
               <div className="pt-8 flex items-center gap-8 border-t border-white/10 mt-4">
                 <div>
                   <p className="text-3xl font-bold">100%</p>
@@ -86,7 +80,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 2. VALUE PROPOSITION (Floating Cards) */}
+      {/* 2. VALUE PROPOSITION */}
       <section className="relative z-20 -mt-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -97,8 +91,8 @@ export default async function Home() {
             />
             <FeatureCard
               icon={<Truck size={40} className="text-blue-600" />}
-              title="Gratis Ongkir"
-              desc="Layanan antar gratis untuk wilayah Maur Baru dan sekitarnya.*"
+              title="Siap Antar Jemput"
+              desc="Kami menyediakan layanan antar ke rumah atau jemput galon di depot."
             />
             <FeatureCard
               icon={<Droplets size={40} className="text-blue-600" />}
@@ -109,13 +103,15 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 3. KATALOG PRODUK */}
+      {/* 3. KATALOG PRODUK (UPDATED) */}
       <section id="katalog" className="py-24 bg-slate-50">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-blue-600 font-bold tracking-widest uppercase text-xs bg-blue-100 px-3 py-1 rounded-full">Katalog Produk</span>
-            <h2 className="text-4xl font-bold text-slate-900 mt-4 mb-4">Pilihan Terbaik Keluarga</h2>
-            <p className="text-slate-500 text-lg">Kami menyediakan berbagai pilihan paket air minum sesuai kebutuhan rumah tangga maupun acara Anda.</p>
+            <span className="text-blue-600 font-bold tracking-widest uppercase text-xs bg-blue-100 px-3 py-1 rounded-full">Layanan Isi Ulang</span>
+            <h2 className="text-4xl font-bold text-slate-900 mt-4 mb-4">Solusi Air Minum Praktis</h2>
+            <p className="text-slate-500 text-lg">
+              Pilih paket yang Anda butuhkan. Tersedia layanan <strong>Diantar ke Rumah</strong> atau <strong>Jemput di Depot</strong>.
+            </p>
           </div>
 
           {products.length === 0 ? (
@@ -125,65 +121,22 @@ export default async function Home() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {products.map((prod) => (
-                <div key={prod.id} className="bg-white rounded-2xl shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden group border border-slate-100 flex flex-col relative">
-                  {/* Badge Promo */}
-                  <div className="absolute top-4 left-4 z-10 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded shadow">
-                    TERLARIS
-                  </div>
-
-                  {/* Gambar */}
-                  <div className="h-64 bg-slate-100 relative flex items-center justify-center overflow-hidden">
-                    {prod.gambarUrl ? (
-                      <img src={prod.gambarUrl} alt={prod.nama} className="h-full w-full object-cover group-hover:scale-110 transition duration-700" />
-                    ) : (
-                      <div className="text-center opacity-30">
-                        <Droplets size={64} className="text-blue-400 mx-auto mb-2" />
-                        <span className="text-blue-400 font-bold text-lg">Nazarel Qua</span>
-                      </div>
-                    )}
-                    {/* Overlay Hover */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
-                      <a href={waLink(`Saya pesan ${prod.nama}`)} target="_blank" className="bg-white text-gray-900 px-6 py-2 rounded-full font-bold transform translate-y-4 group-hover:translate-y-0 transition duration-300">
-                        Lihat Detail
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Konten */}
-                  <div className="p-6 flex-1 flex flex-col">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-xl font-bold text-slate-800 group-hover:text-blue-600 transition">{prod.nama}</h3>
-                      <div className="flex items-center gap-1 text-yellow-500 text-xs font-bold bg-yellow-50 px-2 py-1 rounded">
-                        <Star size={12} fill="currentColor" /> 5.0
-                      </div>
-                    </div>
-                    <p className="text-slate-500 text-sm line-clamp-2 mb-6 flex-1">
-                      {prod.deskripsi || 'Air minum berkualitas tinggi.'}
-                    </p>
-
-                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-auto">
-                      <div>
-                        <p className="text-xs text-slate-400 mb-0.5">Harga Mulai</p>
-                        <p className="text-2xl font-bold text-blue-600">Rp {prod.harga.toNumber().toLocaleString('id-ID')}</p>
-                      </div>
-                      <a
-                        href={waLink(`Halo, saya ingin memesan *${prod.nama}*`)}
-                        target="_blank"
-                        className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl transition shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group-active:scale-95"
-                      >
-                        <MessageCircle size={20} /> <span className="font-semibold text-sm">Pesan</span>
-                      </a>
-                    </div>
-                  </div>
-                </div>
+                // MENGGUNAKAN COMPONENT BARU: ProductCard
+                <ProductCard
+                  key={prod.id}
+                  product={{
+                    ...prod,
+                    // Konversi Decimal Prisma ke number JavaScript agar aman di Client Component
+                    harga: prod.harga.toNumber()
+                  }}
+                />
               ))}
             </div>
           )}
         </div>
       </section>
 
-      {/* 4. SECTION TESTIMONI DINAMIS (UPDATED) */}
-      {/* Kita oper data reviews dari server ke client component */}
+      {/* 4. SECTION TESTIMONI DINAMIS */}
       <TestimonialSection initialData={reviews} />
 
       {/* 5. TENTANG KAMI & LOKASI */}
