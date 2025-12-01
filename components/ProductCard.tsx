@@ -1,38 +1,67 @@
 'use client';
 
 import { useState } from 'react';
-import { Star, MessageCircle, Truck, Store, X, MapPin } from 'lucide-react';
+import { Star, MessageCircle, Truck, Store, X, MapPin, User, ChevronRight } from 'lucide-react';
 
 interface Product {
     id: number;
     nama: string;
     deskripsi: string | null;
-    harga: number; // Disini number karena sudah dikonversi dari Decimal di page.tsx
+    harga: number;
     gambarUrl: string | null;
 }
 
 export default function ProductCard({ product }: { product: Product }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // State Form Pemesanan
+    const [method, setMethod] = useState<'delivery' | 'pickup'>('delivery'); // Default 'delivery'
+    const [name, setName] = useState('');
+    const [address, setAddress] = useState('');
+
     // Nomor WA Admin
     const whatsappNumber = "6281367995046";
 
-    const handleOrder = (type: 'delivery' | 'pickup') => {
-        let message = '';
+    const handleSendOrder = (e: React.FormEvent) => {
+        e.preventDefault();
 
-        if (type === 'delivery') {
-            message = `Halo Nazarel Qua, saya ingin memesan *${product.nama}* (Refill). \n\nMohon *DIANTAR* ke alamat saya.`;
-        } else {
-            message = `Halo Nazarel Qua, saya ingin memesan *${product.nama}* (Refill). \n\nSaya akan *JEMPUT* (Ambil Sendiri) ke depot.`;
+        // Validasi sederhana
+        if (!name.trim()) {
+            alert("Mohon isi nama Anda.");
+            return;
+        }
+        if (method === 'delivery' && !address.trim()) {
+            alert("Mohon isi alamat pengantaran.");
+            return;
         }
 
+        // Format Pesan WhatsApp yang Rapi
+        let message = `Halo Nazarel Qua, saya ingin memesan: \n\n`;
+        message += `🛍️ *Produk:* ${product.nama}\n`;
+        message += `💰 *Harga:* Rp ${product.harga.toLocaleString('id-ID')}\n`;
+        message += `--------------------------------\n`;
+        message += `👤 *Nama:* ${name}\n`;
+        message += `🚚 *Metode:* ${method === 'delivery' ? 'DIANTAR KE RUMAH' : 'AMBIL SENDIRI (PICKUP)'}\n`;
+
+        if (method === 'delivery') {
+            message += `📍 *Alamat:* ${address}\n`;
+        }
+
+        message += `\nMohon segera diproses ya, Terima kasih!`;
+
+        // Buka WhatsApp
         const link = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
         window.open(link, '_blank');
+
+        // Reset & Tutup
         setIsModalOpen(false);
+        setName('');
+        setAddress('');
     };
 
     return (
         <>
+            {/* --- KARTU PRODUK (Tampilan Luar) --- */}
             <div className="bg-white rounded-2xl shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden group border border-slate-100 flex flex-col relative">
                 {/* Badge Promo */}
                 <div className="absolute top-4 left-4 z-10 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded shadow">
@@ -53,7 +82,6 @@ export default function ProductCard({ product }: { product: Product }) {
                         </div>
                     )}
 
-                    {/* Overlay Hover */}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
                         <button
                             onClick={() => setIsModalOpen(true)}
@@ -64,7 +92,7 @@ export default function ProductCard({ product }: { product: Product }) {
                     </div>
                 </div>
 
-                {/* Konten */}
+                {/* Konten Bawah */}
                 <div className="p-6 flex-1 flex flex-col">
                     <div className="flex justify-between items-start mb-2">
                         <h3 className="text-xl font-bold text-slate-800 group-hover:text-blue-600 transition">{product.nama}</h3>
@@ -92,54 +120,108 @@ export default function ProductCard({ product }: { product: Product }) {
                 </div>
             </div>
 
-            {/* MODAL PILIHAN PEMESANAN */}
+            {/* --- MODAL FORMULIR PEMESANAN (Pop-up) --- */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 relative transform transition-all scale-100">
-                        <button
-                            onClick={() => setIsModalOpen(false)}
-                            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full p-1"
-                        >
-                            <X size={20} />
-                        </button>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative flex flex-col max-h-[90vh] overflow-y-auto">
 
-                        <h3 className="text-xl font-bold text-center text-gray-800 mb-2">Metode Pemesanan</h3>
-                        <p className="text-center text-gray-500 text-sm mb-6">
-                            Ingin galon diantar ke rumah atau Anda jemput sendiri ke depot?
-                        </p>
-
-                        <div className="space-y-3">
-                            {/* Opsi 1: Delivery */}
+                        {/* Header Modal */}
+                        <div className="p-5 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
+                            <h3 className="text-lg font-bold text-gray-800">Detail Pemesanan</h3>
                             <button
-                                onClick={() => handleOrder('delivery')}
-                                className="w-full flex items-center gap-4 p-4 border rounded-xl hover:bg-blue-50 hover:border-blue-500 transition group text-left"
+                                onClick={() => setIsModalOpen(false)}
+                                className="text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full p-1 transition"
                             >
-                                <div className="bg-blue-100 text-blue-600 p-3 rounded-full group-hover:bg-blue-600 group-hover:text-white transition">
-                                    <Truck size={24} />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-gray-900 group-hover:text-blue-700">Diantar ke Rumah</h4>
-                                    <p className="text-xs text-gray-500">Kurir kami akan mengantar ke lokasi Anda.</p>
-                                </div>
-                            </button>
-
-                            {/* Opsi 2: Pickup */}
-                            <button
-                                onClick={() => handleOrder('pickup')}
-                                className="w-full flex items-center gap-4 p-4 border rounded-xl hover:bg-green-50 hover:border-green-500 transition group text-left"
-                            >
-                                <div className="bg-green-100 text-green-600 p-3 rounded-full group-hover:bg-green-600 group-hover:text-white transition">
-                                    <Store size={24} />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-gray-900 group-hover:text-green-700">Jemput di Depot</h4>
-                                    <p className="text-xs text-gray-500">Datang langsung ke lokasi Nazarel Qua.</p>
-                                </div>
+                                <X size={20} />
                             </button>
                         </div>
 
-                        <div className="mt-6 text-center text-xs text-gray-400">
-                            Pemesanan akan diarahkan ke WhatsApp
+                        {/* Body Form */}
+                        <div className="p-6">
+                            <form onSubmit={handleSendOrder} className="space-y-5">
+
+                                {/* Pilihan Metode */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Metode Pengambilan</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setMethod('delivery')}
+                                            className={`p-3 rounded-xl border-2 flex flex-col items-center gap-2 transition ${method === 'delivery'
+                                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                    : 'border-gray-200 text-gray-500 hover:border-blue-200'
+                                                }`}
+                                        >
+                                            <Truck size={24} />
+                                            <span className="text-xs font-bold">Diantar (COD)</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setMethod('pickup')}
+                                            className={`p-3 rounded-xl border-2 flex flex-col items-center gap-2 transition ${method === 'pickup'
+                                                    ? 'border-green-500 bg-green-50 text-green-700'
+                                                    : 'border-gray-200 text-gray-500 hover:border-green-200'
+                                                }`}
+                                        >
+                                            <Store size={24} />
+                                            <span className="text-xs font-bold">Ambil Sendiri</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Input Nama (Wajib) */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Nama Pemesan <span className="text-red-500">*</span></label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                            <User size={18} />
+                                        </div>
+                                        <input
+                                            required
+                                            type="text"
+                                            placeholder="Masukkan nama Anda"
+                                            className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900 placeholder:text-gray-400"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Input Alamat (Hanya jika Delivery) */}
+                                {method === 'delivery' && (
+                                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap <span className="text-red-500">*</span></label>
+                                        <div className="relative">
+                                            <div className="absolute top-3 left-3 pointer-events-none text-gray-400">
+                                                <MapPin size={18} />
+                                            </div>
+                                            <textarea
+                                                required
+                                                rows={3}
+                                                placeholder="Contoh: Jl. Mawar No. 12, Samping Masjid Al-Hidayah"
+                                                className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900 placeholder:text-gray-400"
+                                                value={address}
+                                                onChange={(e) => setAddress(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Ringkasan & Tombol */}
+                                <div className="pt-2">
+                                    <button
+                                        type="submit"
+                                        className="w-full bg-green-600 hover:bg-green-700 text-white py-3.5 rounded-xl font-bold text-lg shadow-lg shadow-green-200 transition transform active:scale-95 flex items-center justify-center gap-2"
+                                    >
+                                        <span>Lanjut ke WhatsApp</span>
+                                        <ChevronRight size={20} />
+                                    </button>
+                                    <p className="text-center text-xs text-gray-400 mt-3">
+                                        Pesanan Anda akan diteruskan ke Admin via WhatsApp.
+                                    </p>
+                                </div>
+
+                            </form>
                         </div>
                     </div>
                 </div>
