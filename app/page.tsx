@@ -42,10 +42,10 @@ export default async function Home() {
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="w-full md:w-1/2 text-white space-y-6 animate-in slide-in-from-left duration-700">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-1.5 rounded-full text-sm font-medium text-cyan-50">
+            {/* <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-1.5 rounded-full text-sm font-medium text-cyan-50">
                 <Star size={14} className="text-yellow-400 fill-yellow-400" />
                 Depot Air Minum Terpercaya di Muratara
-              </div>
+              </div> */}
               <h1 className="text-5xl md:text-6xl font-extrabold leading-tight tracking-tight">
                 Kesegaran Murni <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-white">
