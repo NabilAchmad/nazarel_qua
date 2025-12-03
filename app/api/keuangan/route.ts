@@ -10,19 +10,42 @@ const transSchema = z.object({
     keterangan: z.string(),
 });
 
-export async function GET() {
-    const pendapatan = await prisma.pendapatan.findMany();
-    const pengeluaran = await prisma.pengeluaran.findMany();
+export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+    const startParam = searchParams.get('start');
+    const endParam = searchParams.get('end');
 
-    const combined = [
-        ...pendapatan.map(p => ({ ...p, type: 'PENDAPATAN', jumlah: p.jumlah.toNumber() })),
-        ...pengeluaran.map(p => ({ ...p, type: 'PENGELUARAN', jumlah: p.jumlah.toNumber() }))
-    ];
+    // Filter Tanggal
+    const dateFilter: any = {};
+    if (startParam && endParam) {
+        dateFilter.tanggal = {
+            gte: new Date(startParam),
+            lte: new Date(endParam),
+        };
+    }
 
-    // Sort by date desc
-    combined.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
+    try {
+        const pendapatan = await prisma.pendapatan.findMany({
+            where: dateFilter,
+            orderBy: { tanggal: 'desc' }
+        });
+        const pengeluaran = await prisma.pengeluaran.findMany({
+            where: dateFilter,
+            orderBy: { tanggal: 'desc' }
+        });
 
-    return NextResponse.json(combined);
+        const combined = [
+            ...pendapatan.map(p => ({ ...p, type: 'PENDAPATAN', jumlah: p.jumlah.toNumber() })),
+            ...pengeluaran.map(p => ({ ...p, type: 'PENGELUARAN', jumlah: p.jumlah.toNumber() }))
+        ];
+
+        // Sort by date desc
+        combined.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
+
+        return NextResponse.json(combined);
+    } catch (error) {
+        return NextResponse.json({ error: 'Gagal memuat data' }, { status: 500 });
+    }
 }
 
 export async function POST(req: Request) {

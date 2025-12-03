@@ -1,14 +1,23 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { TrendingUp, TrendingDown, Wallet, ArrowRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, ArrowRight, Calendar } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Dashboard() {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
+    // Format Nama Bulan untuk UI
+    const currentMonthName = new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+
     useEffect(() => {
-        fetch('/api/keuangan/summary')
+        // HITUNG TANGGAL AWAL DAN AKHIR BULAN INI
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
+
+        // Panggil API dengan filter tanggal
+        fetch(`/api/keuangan/summary?start=${startOfMonth}&end=${endOfMonth}`)
             .then((res) => res.json())
             .then((data) => {
                 setStats(data);
@@ -27,8 +36,11 @@ export default function Dashboard() {
         <div className="space-y-6">
             <div className="flex justify-between items-end">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
-                    <p className="text-gray-500 text-sm">Ringkasan performa bisnis hari ini.</p>
+                    <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+                    <div className="flex items-center gap-2 text-blue-600 bg-blue-50 px-3 py-1 rounded-lg mt-1 w-fit">
+                        <Calendar size={16} />
+                        <span className="text-sm font-semibold">Periode: {currentMonthName}</span>
+                    </div>
                 </div>
                 <Link href="/admin/keuangan" className="text-sm text-blue-600 hover:underline flex items-center gap-1">
                     Lihat Detail <ArrowRight size={14} />
@@ -43,7 +55,7 @@ export default function Dashboard() {
                         <TrendingUp size={24} />
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500">Total Pendapatan</p>
+                        <p className="text-sm text-gray-500">Pendapatan Bulan Ini</p>
                         <h3 className="text-2xl font-bold text-gray-900">Rp {stats.totalPendapatan.toLocaleString('id-ID')}</h3>
                     </div>
                 </div>
@@ -54,7 +66,7 @@ export default function Dashboard() {
                         <TrendingDown size={24} />
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500">Total Pengeluaran</p>
+                        <p className="text-sm text-gray-500">Pengeluaran Bulan Ini</p>
                         <h3 className="text-2xl font-bold text-gray-900">Rp {stats.totalPengeluaran.toLocaleString('id-ID')}</h3>
                     </div>
                 </div>
@@ -65,7 +77,7 @@ export default function Dashboard() {
                         <Wallet size={24} />
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500">Laba Bersih</p>
+                        <p className="text-sm text-gray-500">Laba Bersih Bulan Ini</p>
                         <h3 className={`text-2xl font-bold ${stats.labaBersih >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
                             Rp {stats.labaBersih.toLocaleString('id-ID')}
                         </h3>
@@ -73,10 +85,10 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Tabel Transaksi Terbaru */}
+            {/* Tabel Transaksi Terbaru (Bulan Ini) */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100">
-                    <h2 className="font-bold text-gray-800">Transaksi Terbaru</h2>
+                    <h2 className="font-bold text-gray-800">Transaksi Terbaru (Bulan Ini)</h2>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
@@ -90,7 +102,7 @@ export default function Dashboard() {
                         </thead>
                         <tbody className="divide-y divide-gray-100 text-sm">
                             {stats.history.length === 0 ? (
-                                <tr><td colSpan={4} className="p-6 text-center text-gray-500">Belum ada transaksi.</td></tr>
+                                <tr><td colSpan={4} className="p-6 text-center text-gray-500">Belum ada transaksi bulan ini.</td></tr>
                             ) : (
                                 stats.history.map((item: any, idx: number) => (
                                     <tr key={idx} className="hover:bg-gray-50 transition">
