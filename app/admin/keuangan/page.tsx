@@ -1,13 +1,17 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Filter, X, Calendar, Search, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import {
+    Plus, Trash2, Filter, X, Calendar, Search,
+    ArrowDownCircle, ArrowUpCircle, ArrowUp, ArrowDown
+} from 'lucide-react';
 
 export default function Keuangan() {
     const [transactions, setTransactions] = useState<any[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // State Filter
+    // State Filter & Sorting
     const [filterType, setFilterType] = useState('ALL'); // ALL, PENDAPATAN, PENGELUARAN
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc'); // 'desc' = Terbaru dulu
 
     // State Tanggal (Default: Bulan Ini)
     const now = new Date();
@@ -15,7 +19,7 @@ export default function Keuangan() {
     const [endDate, setEndDate] = useState(new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]);
     const [activePeriod, setActivePeriod] = useState('Bulan Ini');
 
-    // State Form Transaksi Baru
+    // State Form
     const [formData, setFormData] = useState({
         type: 'PENDAPATAN',
         tanggal: new Date().toISOString().split('T')[0],
@@ -23,25 +27,21 @@ export default function Keuangan() {
         keterangan: ''
     });
 
-    // Fetch Data dengan Filter Tanggal
+    // Fetch Data
     const fetchTrans = async () => {
         let url = '/api/keuangan';
-        // Jika ada tanggal, tambahkan query param
         if (startDate && endDate) {
             url += `?start=${startDate}&end=${endDate}`;
         }
-
         const res = await fetch(url);
         const data = await res.json();
         setTransactions(data);
     };
 
-    // Ambil data setiap kali tanggal berubah
     useEffect(() => {
         fetchTrans();
     }, [startDate, endDate]);
 
-    // Handle Tambah Transaksi
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         await fetch('/api/keuangan', {
@@ -51,50 +51,54 @@ export default function Keuangan() {
         });
         setIsModalOpen(false);
         setFormData({ ...formData, jumlah: 0, keterangan: '' });
-        fetchTrans(); // Refresh data
+        fetchTrans();
     };
 
-    // Handle Hapus
     const handleDelete = async (id: number, type: string) => {
         if (!confirm("Hapus transaksi ini?")) return;
         await fetch(`/api/keuangan/${id}?type=${type}`, { method: 'DELETE' });
         fetchTrans();
     };
 
-    // Filter Client-Side (Jenis Transaksi)
-    const filtered = transactions.filter(t => filterType === 'ALL' || t.type === filterType);
+    // --- LOGIKA UTAMA: FILTER + SORTING ---
+    const processedTransactions = transactions
+        // 1. Filter Tipe (Pendapatan/Pengeluaran)
+        .filter(t => filterType === 'ALL' || t.type === filterType)
+        // 2. Sorting Berdasarkan Tanggal
+        .sort((a, b) => {
+            const dateA = new Date(a.tanggal).getTime();
+            const dateB = new Date(b.tanggal).getTime();
+            // Jika 'asc' (lama -> baru), a - b. Jika 'desc' (baru -> lama), b - a.
+            return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+        });
 
-    // Hitung Total Berdasarkan Data yang Tampil (Filtered Date)
-    const totalMasuk = filtered.filter(t => t.type === 'PENDAPATAN').reduce((acc, curr) => acc + curr.jumlah, 0);
-    const totalKeluar = filtered.filter(t => t.type === 'PENGELUARAN').reduce((acc, curr) => acc + curr.jumlah, 0);
+    // Hitung Total (Berdasarkan hasil filter, bukan urutan)
+    const totalMasuk = processedTransactions.filter(t => t.type === 'PENDAPATAN').reduce((acc, curr) => acc + curr.jumlah, 0);
+    const totalKeluar = processedTransactions.filter(t => t.type === 'PENGELUARAN').reduce((acc, curr) => acc + curr.jumlah, 0);
     const selisih = totalMasuk - totalKeluar;
+
+    // Fungsi Toggle Sorting
+    const toggleSort = () => {
+        setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
+    };
 
     // Helper Set Tanggal Cepat
     const setQuickFilter = (type: 'today' | 'thisWeek' | 'thisMonth' | 'all') => {
         const d = new Date();
-
         if (type === 'today') {
             const today = d.toISOString().split('T')[0];
-            setStartDate(today);
-            setEndDate(today);
-            setActivePeriod('Hari Ini');
+            setStartDate(today); setEndDate(today); setActivePeriod('Hari Ini');
         } else if (type === 'thisWeek') {
             const first = d.getDate() - d.getDay();
             const last = first + 6;
             const firstDay = new Date(d.setDate(first)).toISOString().split('T')[0];
             const lastDay = new Date(d.setDate(last)).toISOString().split('T')[0];
-            setStartDate(firstDay);
-            setEndDate(lastDay);
-            setActivePeriod('Minggu Ini');
+            setStartDate(firstDay); setEndDate(lastDay); setActivePeriod('Minggu Ini');
         } else if (type === 'thisMonth') {
             const start = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
             const end = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
-            setStartDate(start);
-            setEndDate(end);
-            setActivePeriod('Bulan Ini');
+            setStartDate(start); setEndDate(end); setActivePeriod('Bulan Ini');
         } else if (type === 'all') {
-            // Set range sangat lebar atau kosongkan (tergantung backend). 
-            // Disini kita set 5 tahun ke belakang agar aman
             setStartDate('2024-01-01');
             setEndDate(new Date(d.getFullYear() + 1, 11, 31).toISOString().split('T')[0]);
             setActivePeriod('Semua Data');
@@ -116,7 +120,6 @@ export default function Keuangan() {
             {/* FILTER BAR SECTION */}
             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
 
-                {/* Kiri: Filter Periode Cepat */}
                 <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-bold text-gray-700 mr-2 flex items-center gap-1"><Calendar size={16} /> Periode:</span>
                     <button onClick={() => setQuickFilter('today')} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${activePeriod === 'Hari Ini' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>Hari Ini</button>
@@ -125,14 +128,12 @@ export default function Keuangan() {
                     <button onClick={() => setQuickFilter('all')} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${activePeriod === 'Semua Data' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>Semua</button>
                 </div>
 
-                {/* Tengah: Date Picker Custom */}
                 <div className="flex items-center gap-2 text-sm bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
                     <input type="date" value={startDate} onChange={e => { setStartDate(e.target.value); setActivePeriod('Custom'); }} className="bg-transparent outline-none text-gray-600 cursor-pointer" />
                     <span className="text-gray-400">-</span>
                     <input type="date" value={endDate} onChange={e => { setEndDate(e.target.value); setActivePeriod('Custom'); }} className="bg-transparent outline-none text-gray-600 cursor-pointer" />
                 </div>
 
-                {/* Kanan: Filter Tipe */}
                 <div className="flex items-center gap-2 w-full xl:w-auto">
                     <Filter size={16} className="text-gray-400" />
                     <select
@@ -147,38 +148,42 @@ export default function Keuangan() {
                 </div>
             </div>
 
-            {/* RINGKASAN KECIL (Berdasarkan Filter) */}
+            {/* RINGKASAN */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-green-50 p-4 rounded-xl border border-green-100 flex justify-between items-center">
-                    <div>
-                        <p className="text-xs text-green-600 font-semibold mb-1">Total Pemasukan ({activePeriod})</p>
-                        <p className="text-xl font-bold text-green-700">Rp {totalMasuk.toLocaleString('id-ID')}</p>
-                    </div>
+                    <div><p className="text-xs text-green-600 font-semibold mb-1">Total Pemasukan</p><p className="text-xl font-bold text-green-700">Rp {totalMasuk.toLocaleString('id-ID')}</p></div>
                     <ArrowUpCircle className="text-green-400" size={28} />
                 </div>
                 <div className="bg-red-50 p-4 rounded-xl border border-red-100 flex justify-between items-center">
-                    <div>
-                        <p className="text-xs text-red-600 font-semibold mb-1">Total Pengeluaran ({activePeriod})</p>
-                        <p className="text-xl font-bold text-red-700">Rp {totalKeluar.toLocaleString('id-ID')}</p>
-                    </div>
+                    <div><p className="text-xs text-red-600 font-semibold mb-1">Total Pengeluaran</p><p className="text-xl font-bold text-red-700">Rp {totalKeluar.toLocaleString('id-ID')}</p></div>
                     <ArrowDownCircle className="text-red-400" size={28} />
                 </div>
                 <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex justify-between items-center">
-                    <div>
-                        <p className="text-xs text-blue-600 font-semibold mb-1">Sisa Kas ({activePeriod})</p>
-                        <p className={`text-xl font-bold ${selisih >= 0 ? 'text-blue-700' : 'text-red-600'}`}>Rp {selisih.toLocaleString('id-ID')}</p>
-                    </div>
+                    <div><p className="text-xs text-blue-600 font-semibold mb-1">Sisa Kas</p><p className={`text-xl font-bold ${selisih >= 0 ? 'text-blue-700' : 'text-red-600'}`}>Rp {selisih.toLocaleString('id-ID')}</p></div>
                     <div className="text-xs px-2 py-1 bg-white rounded border border-blue-200 text-blue-600 font-bold">NET</div>
                 </div>
             </div>
 
-            {/* TABEL */}
+            {/* TABEL DATA */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
                             <tr>
-                                <th className="p-4">Tanggal</th>
+                                {/* KOLOM TANGGAL (KLIK UNTUK SORT) */}
+                                <th
+                                    className="p-4 cursor-pointer hover:bg-gray-100 transition select-none group"
+                                    onClick={toggleSort}
+                                    title="Klik untuk urutkan tanggal"
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Tanggal
+                                        {sortOrder === 'asc' ?
+                                            <ArrowUp size={14} className="text-blue-600" /> :
+                                            <ArrowDown size={14} className="text-blue-600" />
+                                        }
+                                    </div>
+                                </th>
                                 <th className="p-4">Tipe</th>
                                 <th className="p-4">Keterangan</th>
                                 <th className="p-4 text-right">Jumlah</th>
@@ -186,13 +191,13 @@ export default function Keuangan() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 text-sm">
-                            {filtered.length === 0 ? (
+                            {processedTransactions.length === 0 ? (
                                 <tr><td colSpan={5} className="p-12 text-center text-gray-500 flex flex-col items-center justify-center gap-2">
                                     <Search size={32} className="text-gray-300" />
                                     Tidak ada transaksi pada periode ini.
                                 </td></tr>
                             ) : (
-                                filtered.map((t, idx) => (
+                                processedTransactions.map((t, idx) => (
                                     <tr key={`${t.type}-${t.id}-${idx}`} className="hover:bg-gray-50 transition">
                                         <td className="p-4 text-gray-600 whitespace-nowrap">
                                             {new Date(t.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'long' })}
@@ -220,7 +225,7 @@ export default function Keuangan() {
                 </div>
             </div>
 
-            {/* Modal Tambah Transaksi */}
+            {/* MODAL TAMBAH (Tetap Sama) */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative animate-in fade-in zoom-in duration-200">
