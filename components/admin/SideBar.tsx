@@ -63,7 +63,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, toggleCollapse }
             // Pastikan file 'logo.png' ada di folder public/
             <div className="relative w-8 h-8">
               <Image
-                src="/public/logo.png"  // Ganti sesuai nama file logo anda
+                src="public\logo.png"  // Ganti sesuai nama file logo anda
                 alt="Logo"
                 fill
                 className="object-contain"
