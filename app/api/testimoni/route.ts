@@ -1,4 +1,3 @@
-// app/api/testimoni/route.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
@@ -11,27 +10,38 @@ const testimoniSchema = z.object({
 });
 
 export async function GET(req: Request) {
-    try {
-        // Cek apakah ada parameter ?mode=admin
-        const { searchParams } = new URL(req.url);
-        const isAdmin = searchParams.get('mode') === 'admin';
+    const { searchParams } = new URL(req.url);
+    const isAdmin = searchParams.get('mode') === 'admin';
 
-        const data = await prisma.testimoni.findMany({
-            orderBy: { createdAt: 'desc' },
-            // Jika admin, ambil semua. Jika public, ambil 6 saja.
-            take: isAdmin ? undefined : 6
-        });
-        return NextResponse.json(data);
-    } catch (error) {
-        return NextResponse.json({ error: 'Gagal memuat data' }, { status: 500 });
-    }
+    const data = await prisma.testimoni.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: isAdmin ? undefined : 6
+    });
+    return NextResponse.json(data);
 }
 
 export async function POST(req: Request) {
-    // ... (Sama seperti sebelumnya, tidak berubah)
     try {
         const body = await req.json();
         const validatedData = testimoniSchema.parse(body);
+
+        // --- CEK KATA KASAR (SENSOR) ---
+        const blacklist = await prisma.blacklistWord.findMany();
+        const badWords = blacklist.map(b => b.word);
+
+        const inputKomentar = validatedData.komentar.toLowerCase();
+        const inputNama = validatedData.nama.toLowerCase();
+
+        // Cek apakah komentar mengandung kata terlarang
+        const foundBadWord = badWords.find(bad => inputKomentar.includes(bad) || inputNama.includes(bad));
+
+        if (foundBadWord) {
+            return NextResponse.json(
+                { error: `Ulasan Anda mengandung kata yang tidak diperbolehkan: "${foundBadWord}"` },
+                { status: 400 }
+            );
+        }
+        // -------------------------------
 
         const result = await prisma.testimoni.create({
             data: validatedData
@@ -39,6 +49,6 @@ export async function POST(req: Request) {
 
         return NextResponse.json(result);
     } catch (error) {
-        return NextResponse.json({ error: 'Data tidak valid' }, { status: 400 });
+        return NextResponse.json({ error: 'Data tidak valid atau mengandung kata kasar' }, { status: 400 });
     }
 }
