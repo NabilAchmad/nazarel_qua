@@ -54,3 +54,8 @@ model BlacklistWord {
   word      String   @unique
   createdAt DateTime @default(now())
 }
+
+model Statistik {
+  id             Int @id @default(1)
+  totalGalon     Int @default(5000)
+}
