@@ -153,14 +153,14 @@ export default async function Home() {
       {/* 3. KATALOG */}
       <section id="katalog" className="py-24 bg-slate-50 border-t border-slate-200">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4 text-center md:text-left">
              <div>
                 <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">Katalog Produk</span>
                 <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">Pilih Kebutuhan Anda</h2>
              </div>
-             <p className="text-slate-500 max-w-md text-right hidden md:block">
+             {/* <p className="text-slate-500 max-w-md text-right hidden md:block">
                 Tersedia layanan antar ke rumah atau jemput sendiri di depot kami dengan harga spesial.
-             </p>
+             </p> */}
           </div>
 
           {products.length === 0 ? (
