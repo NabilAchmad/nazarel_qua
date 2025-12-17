@@ -39,9 +39,9 @@ export default async function Home() {
             
             {/* Left Content */}
             <div className="w-full lg:w-1/2 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/50 border border-blue-700 text-blue-200 text-xs font-bold uppercase tracking-wider backdrop-blur-md">
+              {/* <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/50 border border-blue-700 text-blue-200 text-xs font-bold uppercase tracking-wider backdrop-blur-md">
                 <Award size={14} className="text-yellow-400" /> Depot Air Minum Premium
-              </div>
+              </div> */}
               
               <h1 className="text-5xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight">
                 Kesegaran Murni <br/>
@@ -69,13 +69,6 @@ export default async function Home() {
                 </a>
               </div>
 
-              {/* Trust Indicators */}
-              <div className="pt-8 border-t border-slate-700/50 flex items-center gap-8">
-                <div>
-                  <p className="text-3xl font-bold text-white">{galonSold.toLocaleString('id-ID')}+</p>
-                  <p className="text-sm text-slate-400">Galon Terjual</p>
-                </div>
-              </div>
             </div>
 
             {/* Right Image */}
