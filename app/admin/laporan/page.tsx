@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Download, TrendingUp, TrendingDown, Wallet, Calendar, Filter } from 'lucide-react';
+import { Download, TrendingUp, TrendingDown, Wallet, Calendar, Filter, FileSpreadsheet, CheckCircle2, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { motion } from 'framer-motion';
 
 export default function Laporan() {
     const [data, setData] = useState<any[]>([]);
@@ -90,72 +91,103 @@ export default function Laporan() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8"
+        >
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Laporan Keuangan</h1>
-                    <p className="text-gray-500 text-sm">Analisis keuangan berdasarkan periode.</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Laporan Keuangan</h1>
+                    <p className="text-slate-500 text-sm mt-1">Analisis dan visualisasi arus kas berdasarkan periode.</p>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={handleExport} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition text-sm">
-                        <Download size={16} /> Export
+                    <button onClick={handleExport} className="bg-ocean-600 hover:bg-ocean-700 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-sm shadow-ocean-600/20 transition-all active:scale-95">
+                        <FileSpreadsheet size={18} /> Export CSV
                     </button>
                 </div>
             </div>
 
             {/* FILTER BAR */}
-            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-                    <span className="text-sm font-bold text-gray-700 flex items-center gap-1"><Filter size={16} /> Filter:</span>
-                    <button onClick={() => setFilter('7days')} className={`px-3 py-1.5 rounded-full text-xs font-medium transition border ${filterLabel === '7 Hari Terakhir' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>7 Hari</button>
-                    <button onClick={() => setFilter('thisMonth')} className={`px-3 py-1.5 rounded-full text-xs font-medium transition border ${filterLabel === 'Bulan Ini' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>Bulan Ini</button>
-                    <button onClick={() => setFilter('lastMonth')} className={`px-3 py-1.5 rounded-full text-xs font-medium transition border ${filterLabel === 'Bulan Lalu' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>Bulan Lalu</button>
-                    <button onClick={() => setFilter('thisYear')} className={`px-3 py-1.5 rounded-full text-xs font-medium transition border ${filterLabel === 'Tahun Ini' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>Tahun Ini</button>
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-5 justify-between items-start md:items-center">
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-bold text-slate-700 mr-2 flex items-center gap-1.5"><Filter size={16} className="text-ocean-500" /> Filter:</span>
+                    <button onClick={() => setFilter('7days')} className={`px-4 py-2 rounded-xl text-xs font-bold transition border ${filterLabel === '7 Hari Terakhir' ? 'bg-ocean-50 text-ocean-700 border-ocean-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-ocean-600'}`}>7 Hari Terakhir</button>
+                    <button onClick={() => setFilter('thisMonth')} className={`px-4 py-2 rounded-xl text-xs font-bold transition border ${filterLabel === 'Bulan Ini' ? 'bg-ocean-50 text-ocean-700 border-ocean-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-ocean-600'}`}>Bulan Ini</button>
+                    <button onClick={() => setFilter('lastMonth')} className={`px-4 py-2 rounded-xl text-xs font-bold transition border ${filterLabel === 'Bulan Lalu' ? 'bg-ocean-50 text-ocean-700 border-ocean-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-ocean-600'}`}>Bulan Lalu</button>
+                    <button onClick={() => setFilter('thisYear')} className={`px-4 py-2 rounded-xl text-xs font-bold transition border ${filterLabel === 'Tahun Ini' ? 'bg-ocean-50 text-ocean-700 border-ocean-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-ocean-600'}`}>Tahun Ini</button>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm">
-                    <input type="date" value={startDate} onChange={e => { setStartDate(e.target.value); setFilterLabel('Custom'); }} className="border rounded px-2 py-1 text-gray-600 outline-none focus:border-blue-500" />
-                    <span className="text-gray-400">-</span>
-                    <input type="date" value={endDate} onChange={e => { setEndDate(e.target.value); setFilterLabel('Custom'); }} className="border rounded px-2 py-1 text-gray-600 outline-none focus:border-blue-500" />
+                <div className="flex items-center gap-2 text-sm bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 shadow-inner">
+                    <input type="date" value={startDate} onChange={e => { setStartDate(e.target.value); setFilterLabel('Custom'); }} className="bg-transparent outline-none text-slate-600 cursor-pointer font-medium" />
+                    <span className="text-slate-400 font-bold">-</span>
+                    <input type="date" value={endDate} onChange={e => { setEndDate(e.target.value); setFilterLabel('Custom'); }} className="bg-transparent outline-none text-slate-600 cursor-pointer font-medium" />
                 </div>
             </div>
 
             {/* TOTAL CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                    <p className="text-xs text-gray-500 mb-1">Pendapatan ({filterLabel})</p>
-                    <p className="font-bold text-gray-800 text-xl">Rp {totalPendapatan.toLocaleString('id-ID')}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition group">
+                    <div>
+                        <p className="text-sm font-bold text-slate-500 mb-1">Pendapatan ({filterLabel})</p>
+                        <h3 className="text-3xl font-extrabold text-emerald-600">Rp {totalPendapatan.toLocaleString('id-ID')}</h3>
+                    </div>
+                    <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 shadow-inner group-hover:scale-110 transition-transform">
+                        <ArrowUpCircle size={28} />
+                    </div>
                 </div>
-                <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                    <p className="text-xs text-gray-500 mb-1">Pengeluaran ({filterLabel})</p>
-                    <p className="font-bold text-gray-800 text-xl">Rp {totalPengeluaran.toLocaleString('id-ID')}</p>
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition group">
+                    <div>
+                        <p className="text-sm font-bold text-slate-500 mb-1">Pengeluaran ({filterLabel})</p>
+                        <h3 className="text-3xl font-extrabold text-rose-600">Rp {totalPengeluaran.toLocaleString('id-ID')}</h3>
+                    </div>
+                    <div className="p-4 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 shadow-inner group-hover:scale-110 transition-transform">
+                        <ArrowDownCircle size={28} />
+                    </div>
                 </div>
-                <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                    <p className="text-xs text-gray-500 mb-1">Laba Bersih ({filterLabel})</p>
-                    <p className={`font-bold text-xl ${totalLaba >= 0 ? 'text-blue-600' : 'text-red-600'}`}>Rp {totalLaba.toLocaleString('id-ID')}</p>
+                <div className="bg-gradient-to-br from-ocean-900 to-ocean-800 p-6 rounded-2xl shadow-lg border border-ocean-700 flex items-center justify-between hover:-translate-y-1 transition duration-300">
+                    <div>
+                        <p className="text-sm font-bold text-ocean-200 mb-1">Laba Bersih ({filterLabel})</p>
+                        <h3 className={`text-3xl font-extrabold ${totalLaba >= 0 ? 'text-white' : 'text-rose-400'}`}>
+                            Rp {totalLaba.toLocaleString('id-ID')}
+                        </h3>
+                    </div>
+                    <div className="p-4 bg-gold-500 text-ocean-900 rounded-2xl shadow-inner shadow-gold-600/50">
+                        <CheckCircle2 size={28} />
+                    </div>
                 </div>
             </div>
 
             {/* CHART */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-[400px] relative">
-                {loading && <div className="absolute inset-0 bg-white/80 z-10 flex items-center justify-center text-sm text-blue-600">Memuat data...</div>}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-[450px] relative">
+                {loading && (
+                    <div className="absolute inset-0 bg-white/70 backdrop-blur-sm z-10 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-ocean-600"></div>
+                    </div>
+                )}
 
                 {data.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} dy={10} />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} tickFormatter={(value) => `${value / 1000}k`} />
-                            <Tooltip cursor={{ fill: '#f3f4f6' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} formatter={(value: number) => `Rp ${value.toLocaleString('id-ID')}`} />
-                            <Legend />
-                            <Bar dataKey="pendapatan" fill="#2563eb" name="Pendapatan" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="pengeluaran" fill="#ef4444" name="Pengeluaran" radius={[4, 4, 0, 0]} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} dy={10} />
+                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} tickFormatter={(value) => `${value / 1000}k`} />
+                            <Tooltip 
+                                cursor={{ fill: '#f8fafc' }} 
+                                contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} 
+                                formatter={(value: number) => `Rp ${value.toLocaleString('id-ID')}`} 
+                            />
+                            <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                            <Bar dataKey="pendapatan" fill="#10b981" name="Pendapatan (Rp)" radius={[4, 4, 0, 0]} barSize={30} />
+                            <Bar dataKey="pengeluaran" fill="#f43f5e" name="Pengeluaran (Rp)" radius={[4, 4, 0, 0]} barSize={30} />
                         </BarChart>
                     </ResponsiveContainer>
                 ) : (
-                    <div className="h-full flex items-center justify-center text-gray-400">Tidak ada data untuk periode ini</div>
+                    <div className="h-full flex items-center justify-center text-slate-400 font-medium">
+                        Tidak ada data grafik untuk periode ini
+                    </div>
                 )}
             </div>
-        </div>
+        </motion.div>
     );
 }

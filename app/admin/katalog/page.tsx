@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { UploadCloud, X, Edit, Trash2, Image as ImageIcon, Plus } from 'lucide-react';
+import { UploadCloud, X, Edit, Trash2, Image as ImageIcon, Plus, Package } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function Katalog() {
     const [products, setProducts] = useState<any[]>([]);
@@ -75,52 +76,69 @@ export default function Katalog() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8"
+        >
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Katalog Produk</h1>
-                    <p className="text-gray-500 text-sm">Kelola daftar produk yang tampil di halaman depan.</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Katalog Produk</h1>
+                    <p className="text-slate-500 text-sm mt-1">Kelola daftar produk yang tampil di halaman depan.</p>
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition"
+                    className="bg-ocean-600 hover:bg-ocean-700 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-sm shadow-ocean-600/20 transition-all active:scale-95"
                 >
                     <Plus size={18} /> Tambah Produk
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-slate-50 border-b border-slate-100 text-slate-600 font-semibold text-sm">
                             <tr>
-                                <th className="p-4 w-24">Foto</th>
-                                <th className="p-4">Nama Produk</th>
-                                <th className="p-4">Harga</th>
-                                <th className="p-4">Deskripsi</th>
-                                <th className="p-4 text-right">Aksi</th>
+                                <th className="p-5 w-24">Foto</th>
+                                <th className="p-5">Nama Produk</th>
+                                <th className="p-5">Harga</th>
+                                <th className="p-5">Deskripsi</th>
+                                <th className="p-5 text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 text-sm">
+                        <tbody className="divide-y divide-slate-50 text-sm">
                             {products.length === 0 ? (
-                                <tr><td colSpan={5} className="p-8 text-center text-gray-500">Belum ada data produk.</td></tr>
+                                <tr>
+                                    <td colSpan={5} className="p-16 text-center text-slate-400">
+                                        <div className="flex flex-col items-center justify-center gap-3">
+                                            <div className="p-4 bg-slate-50 rounded-full text-slate-300">
+                                                <Package size={32} />
+                                            </div>
+                                            <p className="font-medium">Belum ada data produk.</p>
+                                        </div>
+                                    </td>
+                                </tr>
                             ) : (
                                 products.map(p => (
-                                    <tr key={p.id} className="hover:bg-gray-50 transition">
-                                        <td className="p-4">
-                                            <div className="w-12 h-12 rounded bg-gray-100 border overflow-hidden flex items-center justify-center">
+                                    <tr key={p.id} className="hover:bg-slate-50/80 transition-colors group">
+                                        <td className="p-5">
+                                            <div className="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shadow-sm">
                                                 {p.gambarUrl ? (
                                                     <img src={p.gambarUrl} alt={p.nama} className="w-full h-full object-cover" />
-                                                ) : <ImageIcon className="text-gray-400" size={20} />}
+                                                ) : <ImageIcon className="text-slate-300" size={24} />}
                                             </div>
                                         </td>
-                                        <td className="p-4 font-medium text-gray-900">{p.nama}</td>
-                                        <td className="p-4 text-blue-600 font-semibold">Rp {p.harga.toLocaleString('id-ID')}</td>
-                                        <td className="p-4 text-gray-500 max-w-xs truncate">{p.deskripsi || '-'}</td>
-                                        <td className="p-4 text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <button onClick={() => openEdit(p)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"><Edit size={16} /></button>
-                                                <button onClick={() => handleDelete(p.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-full"><Trash2 size={16} /></button>
+                                        <td className="p-5 font-bold text-slate-800">{p.nama}</td>
+                                        <td className="p-5 text-ocean-600 font-bold bg-ocean-50/30">Rp {p.harga.toLocaleString('id-ID')}</td>
+                                        <td className="p-5 text-slate-500 max-w-xs truncate">{p.deskripsi || '-'}</td>
+                                        <td className="p-5 text-right">
+                                            <div className="flex justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                                <button onClick={() => openEdit(p)} className="p-2 text-gold-600 hover:text-gold-700 hover:bg-gold-50 rounded-lg transition" title="Edit">
+                                                    <Edit size={18} />
+                                                </button>
+                                                <button onClick={() => handleDelete(p.id)} className="p-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus">
+                                                    <Trash2 size={18} />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -133,53 +151,57 @@ export default function Katalog() {
 
             {/* Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative animate-in fade-in zoom-in duration-200">
-                        <button onClick={closeModal} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={20} /></button>
-                        <h2 className="text-xl font-bold mb-4 text-gray-800">{editId ? 'Edit Produk' : 'Produk Baru'}</h2>
+                <div className="fixed inset-0 bg-ocean-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-7 relative border border-slate-100"
+                    >
+                        <button onClick={closeModal} className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition bg-slate-50 hover:bg-slate-100 p-1.5 rounded-full"><X size={20} /></button>
+                        <h2 className="text-2xl font-extrabold mb-6 text-slate-800">{editId ? 'Edit Produk' : 'Produk Baru'}</h2>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-                                <input required type="text" className="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={formData.nama} onChange={e => setFormData({ ...formData, nama: e.target.value })} />
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nama Produk</label>
+                                <input required type="text" className="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-ocean-500/20 focus:border-ocean-500 outline-none transition bg-slate-50 focus:bg-white"
+                                    value={formData.nama} onChange={e => setFormData({ ...formData, nama: e.target.value })} placeholder="Cth: Galon Normal" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Harga (Rp)</label>
-                                <input required type="number" min="0" className="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={formData.harga || ''} onChange={e => setFormData({ ...formData, harga: parseFloat(e.target.value) })} />
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Harga (Rp)</label>
+                                <input required type="number" min="0" className="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-ocean-500/20 focus:border-ocean-500 outline-none transition bg-slate-50 focus:bg-white"
+                                    value={formData.harga || ''} onChange={e => setFormData({ ...formData, harga: parseFloat(e.target.value) })} placeholder="5000" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
-                                <textarea rows={3} className="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={formData.deskripsi} onChange={e => setFormData({ ...formData, deskripsi: e.target.value })} />
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Deskripsi Singkat</label>
+                                <textarea rows={3} className="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-ocean-500/20 focus:border-ocean-500 outline-none transition bg-slate-50 focus:bg-white resize-none"
+                                    value={formData.deskripsi} onChange={e => setFormData({ ...formData, deskripsi: e.target.value })} placeholder="Tambahkan keterangan produk..." />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Foto</label>
-                                <div className="flex items-center gap-3">
-                                    <label className={`flex items-center justify-center px-4 py-2 border border-dashed rounded-lg cursor-pointer ${isUploading ? 'bg-gray-100' : 'hover:bg-blue-50 border-blue-300'}`}>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Foto Produk</label>
+                                <div className="flex items-center gap-4">
+                                    <label className={`flex flex-1 items-center justify-center gap-2 px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition ${isUploading ? 'bg-slate-50 border-slate-200 text-slate-400' : 'bg-ocean-50/50 hover:bg-ocean-50 border-ocean-200 hover:border-ocean-300 text-ocean-600'}`}>
                                         <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <UploadCloud size={16} /> {isUploading ? 'Uploading...' : 'Pilih File'}
-                                        </div>
+                                        <UploadCloud size={18} /> 
+                                        <span className="text-sm font-medium">{isUploading ? 'Mengunggah...' : 'Pilih File Gambar'}</span>
                                     </label>
                                     {formData.gambarUrl && (
-                                        <div className="h-10 w-10 relative rounded overflow-hidden border">
+                                        <div className="h-14 w-14 relative rounded-xl overflow-hidden border border-slate-200 shadow-sm flex-shrink-0">
                                             <img src={formData.gambarUrl} alt="Preview" className="h-full w-full object-cover" />
                                         </div>
                                     )}
                                 </div>
                             </div>
-                            <div className="pt-2 flex justify-end gap-2">
-                                <button type="button" onClick={closeModal} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Batal</button>
-                                <button type="submit" disabled={isUploading || isLoading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
-                                    {isLoading ? 'Menyimpan...' : 'Simpan'}
+                            <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 mt-6">
+                                <button type="button" onClick={closeModal} className="px-5 py-2.5 font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">Batal</button>
+                                <button type="submit" disabled={isUploading || isLoading} className="px-5 py-2.5 bg-gold-500 text-ocean-950 font-bold rounded-xl hover:bg-gold-400 disabled:opacity-50 transition-all active:scale-95 shadow-sm shadow-gold-500/20">
+                                    {isLoading ? 'Menyimpan...' : 'Simpan Produk'}
                                 </button>
                             </div>
                         </form>
-                    </div>
+                    </motion.div>
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 }

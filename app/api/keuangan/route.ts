@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { z } from 'zod';
+import { logActivity } from '@/lib/logger';
 
 const transSchema = z.object({
     type: z.enum(['PENDAPATAN', 'PENGELUARAN']),
@@ -66,6 +67,10 @@ export async function POST(req: Request) {
                 data: { userId: session.id, tanggal: new Date(tanggal), jumlah, keterangan }
             });
         }
+
+        // Log ke MongoDB
+        await logActivity(`CREATE_${type}`, { id: result.id, jumlah, keterangan }, session.id, session.username);
+
         return NextResponse.json({ ...result, jumlah: result.jumlah.toNumber(), type });
     } catch (e) {
         return NextResponse.json({ error: 'Error' }, { status: 400 });

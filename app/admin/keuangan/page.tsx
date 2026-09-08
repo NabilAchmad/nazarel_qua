@@ -2,8 +2,9 @@
 import { useState, useEffect } from 'react';
 import {
     Plus, Trash2, Filter, X, Calendar, Search,
-    ArrowDownCircle, ArrowUpCircle, ArrowUp, ArrowDown
+    ArrowDownCircle, ArrowUpCircle, ArrowUp, ArrowDown, Download, CheckCircle2
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function Keuangan() {
     const [transactions, setTransactions] = useState<any[]>([]);
@@ -27,15 +28,24 @@ export default function Keuangan() {
         keterangan: ''
     });
 
+    const [isLoading, setIsLoading] = useState(false);
+
     // Fetch Data
     const fetchTrans = async () => {
+        setIsLoading(true);
         let url = '/api/keuangan';
         if (startDate && endDate) {
             url += `?start=${startDate}&end=${endDate}`;
         }
-        const res = await fetch(url);
-        const data = await res.json();
-        setTransactions(data);
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            setTransactions(data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -44,14 +54,19 @@ export default function Keuangan() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await fetch('/api/keuangan', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-        setIsModalOpen(false);
-        setFormData({ ...formData, jumlah: 0, keterangan: '' });
-        fetchTrans();
+        setIsLoading(true);
+        try {
+            await fetch('/api/keuangan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            setIsModalOpen(false);
+            setFormData({ ...formData, jumlah: 0, keterangan: '' });
+            fetchTrans();
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleDelete = async (id: number, type: string) => {
@@ -62,27 +77,20 @@ export default function Keuangan() {
 
     // --- LOGIKA UTAMA: FILTER + SORTING ---
     const processedTransactions = transactions
-        // 1. Filter Tipe (Pendapatan/Pengeluaran)
         .filter(t => filterType === 'ALL' || t.type === filterType)
-        // 2. Sorting Berdasarkan Tanggal
         .sort((a, b) => {
             const dateA = new Date(a.tanggal).getTime();
             const dateB = new Date(b.tanggal).getTime();
-            // Jika 'asc' (lama -> baru), a - b. Jika 'desc' (baru -> lama), b - a.
             return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
         });
 
-    // Hitung Total (Berdasarkan hasil filter, bukan urutan)
+    // Hitung Total (Berdasarkan hasil filter)
     const totalMasuk = processedTransactions.filter(t => t.type === 'PENDAPATAN').reduce((acc, curr) => acc + curr.jumlah, 0);
     const totalKeluar = processedTransactions.filter(t => t.type === 'PENGELUARAN').reduce((acc, curr) => acc + curr.jumlah, 0);
     const selisih = totalMasuk - totalKeluar;
 
-    // Fungsi Toggle Sorting
-    const toggleSort = () => {
-        setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
-    };
+    const toggleSort = () => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
 
-    // Helper Set Tanggal Cepat
     const setQuickFilter = (type: 'today' | 'thisWeek' | 'thisMonth' | 'all') => {
         const d = new Date();
         if (type === 'today') {
@@ -106,42 +114,48 @@ export default function Keuangan() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8"
+        >
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Data Keuangan</h1>
-                    <p className="text-gray-500 text-sm">Kelola pemasukan dan pengeluaran harian.</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Data Keuangan</h1>
+                    <p className="text-slate-500 text-sm mt-1">Kelola pencatatan arus kas masuk dan keluar secara rinci.</p>
                 </div>
-                <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition">
+                <button 
+                    onClick={() => setIsModalOpen(true)} 
+                    className="bg-ocean-600 hover:bg-ocean-700 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-sm shadow-ocean-600/20 transition-all active:scale-95"
+                >
                     <Plus size={18} /> Transaksi Baru
                 </button>
             </div>
 
             {/* FILTER BAR SECTION */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
-
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col xl:flex-row gap-5 justify-between items-start xl:items-center">
                 <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-bold text-gray-700 mr-2 flex items-center gap-1"><Calendar size={16} /> Periode:</span>
-                    <button onClick={() => setQuickFilter('today')} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${activePeriod === 'Hari Ini' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>Hari Ini</button>
-                    <button onClick={() => setQuickFilter('thisWeek')} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${activePeriod === 'Minggu Ini' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>Minggu Ini</button>
-                    <button onClick={() => setQuickFilter('thisMonth')} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${activePeriod === 'Bulan Ini' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>Bulan Ini</button>
-                    <button onClick={() => setQuickFilter('all')} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${activePeriod === 'Semua Data' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>Semua</button>
+                    <span className="text-sm font-bold text-slate-700 mr-2 flex items-center gap-1.5"><Calendar size={16} className="text-ocean-500"/> Periode:</span>
+                    <button onClick={() => setQuickFilter('today')} className={`px-4 py-2 rounded-xl text-xs font-bold transition border ${activePeriod === 'Hari Ini' ? 'bg-ocean-50 text-ocean-700 border-ocean-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-ocean-600'}`}>Hari Ini</button>
+                    <button onClick={() => setQuickFilter('thisWeek')} className={`px-4 py-2 rounded-xl text-xs font-bold transition border ${activePeriod === 'Minggu Ini' ? 'bg-ocean-50 text-ocean-700 border-ocean-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-ocean-600'}`}>Minggu Ini</button>
+                    <button onClick={() => setQuickFilter('thisMonth')} className={`px-4 py-2 rounded-xl text-xs font-bold transition border ${activePeriod === 'Bulan Ini' ? 'bg-ocean-50 text-ocean-700 border-ocean-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-ocean-600'}`}>Bulan Ini</button>
+                    <button onClick={() => setQuickFilter('all')} className={`px-4 py-2 rounded-xl text-xs font-bold transition border ${activePeriod === 'Semua Data' ? 'bg-ocean-50 text-ocean-700 border-ocean-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-ocean-600'}`}>Semua</button>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
-                    <input type="date" value={startDate} onChange={e => { setStartDate(e.target.value); setActivePeriod('Custom'); }} className="bg-transparent outline-none text-gray-600 cursor-pointer" />
-                    <span className="text-gray-400">-</span>
-                    <input type="date" value={endDate} onChange={e => { setEndDate(e.target.value); setActivePeriod('Custom'); }} className="bg-transparent outline-none text-gray-600 cursor-pointer" />
+                <div className="flex items-center gap-2 text-sm bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 shadow-inner">
+                    <input type="date" value={startDate} onChange={e => { setStartDate(e.target.value); setActivePeriod('Custom'); }} className="bg-transparent outline-none text-slate-600 cursor-pointer font-medium" />
+                    <span className="text-slate-400 font-bold">-</span>
+                    <input type="date" value={endDate} onChange={e => { setEndDate(e.target.value); setActivePeriod('Custom'); }} className="bg-transparent outline-none text-slate-600 cursor-pointer font-medium" />
                 </div>
 
-                <div className="flex items-center gap-2 w-full xl:w-auto">
-                    <Filter size={16} className="text-gray-400" />
+                <div className="flex items-center gap-2 w-full xl:w-auto relative">
+                    <Filter size={16} className="text-ocean-500 absolute left-3" />
                     <select
                         value={filterType}
                         onChange={(e) => setFilterType(e.target.value)}
-                        className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full xl:w-auto"
+                        className="pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-ocean-500 focus:bg-white text-slate-700 w-full xl:w-auto appearance-none transition cursor-pointer"
                     >
-                        <option value="ALL">Semua Tipe</option>
+                        <option value="ALL">Semua Transaksi</option>
                         <option value="PENDAPATAN">Hanya Pemasukan</option>
                         <option value="PENGELUARAN">Hanya Pengeluaran</option>
                     </select>
@@ -149,73 +163,99 @@ export default function Keuangan() {
             </div>
 
             {/* RINGKASAN */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-green-50 p-4 rounded-xl border border-green-100 flex justify-between items-center">
-                    <div><p className="text-xs text-green-600 font-semibold mb-1">Total Pemasukan</p><p className="text-xl font-bold text-green-700">Rp {totalMasuk.toLocaleString('id-ID')}</p></div>
-                    <ArrowUpCircle className="text-green-400" size={28} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition group">
+                    <div>
+                        <p className="text-sm font-bold text-slate-500 mb-1">Total Pemasukan</p>
+                        <h3 className="text-3xl font-extrabold text-emerald-600">Rp {totalMasuk.toLocaleString('id-ID')}</h3>
+                    </div>
+                    <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 shadow-inner group-hover:scale-110 transition-transform">
+                        <ArrowUpCircle size={28} />
+                    </div>
                 </div>
-                <div className="bg-red-50 p-4 rounded-xl border border-red-100 flex justify-between items-center">
-                    <div><p className="text-xs text-red-600 font-semibold mb-1">Total Pengeluaran</p><p className="text-xl font-bold text-red-700">Rp {totalKeluar.toLocaleString('id-ID')}</p></div>
-                    <ArrowDownCircle className="text-red-400" size={28} />
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition group">
+                    <div>
+                        <p className="text-sm font-bold text-slate-500 mb-1">Total Pengeluaran</p>
+                        <h3 className="text-3xl font-extrabold text-rose-600">Rp {totalKeluar.toLocaleString('id-ID')}</h3>
+                    </div>
+                    <div className="p-4 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 shadow-inner group-hover:scale-110 transition-transform">
+                        <ArrowDownCircle size={28} />
+                    </div>
                 </div>
-                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex justify-between items-center">
-                    <div><p className="text-xs text-blue-600 font-semibold mb-1">Sisa Kas</p><p className={`text-xl font-bold ${selisih >= 0 ? 'text-blue-700' : 'text-red-600'}`}>Rp {selisih.toLocaleString('id-ID')}</p></div>
-                    <div className="text-xs px-2 py-1 bg-white rounded border border-blue-200 text-blue-600 font-bold">NET</div>
+                <div className="bg-gradient-to-br from-ocean-900 to-ocean-800 p-6 rounded-2xl shadow-lg border border-ocean-700 flex items-center justify-between hover:-translate-y-1 transition duration-300">
+                    <div>
+                        <p className="text-sm font-bold text-ocean-200 mb-1">Sisa Kas (NET)</p>
+                        <h3 className={`text-3xl font-extrabold ${selisih >= 0 ? 'text-white' : 'text-rose-400'}`}>
+                            Rp {selisih.toLocaleString('id-ID')}
+                        </h3>
+                    </div>
+                    <div className="p-4 bg-gold-500 text-ocean-900 rounded-2xl shadow-inner shadow-gold-600/50">
+                        <CheckCircle2 size={28} />
+                    </div>
                 </div>
             </div>
 
             {/* TABEL DATA */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden relative">
+                {isLoading && (
+                    <div className="absolute inset-0 bg-white/70 backdrop-blur-sm z-10 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-ocean-600"></div>
+                    </div>
+                )}
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-slate-50 border-b border-slate-100 text-slate-600 font-semibold text-sm">
                             <tr>
-                                {/* KOLOM TANGGAL (KLIK UNTUK SORT) */}
                                 <th
-                                    className="p-4 cursor-pointer hover:bg-gray-100 transition select-none group"
+                                    className="p-5 cursor-pointer hover:bg-slate-100 transition select-none group"
                                     onClick={toggleSort}
-                                    title="Klik untuk urutkan tanggal"
                                 >
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-1.5">
                                         Tanggal
-                                        {sortOrder === 'asc' ?
-                                            <ArrowUp size={14} className="text-blue-600" /> :
-                                            <ArrowDown size={14} className="text-blue-600" />
-                                        }
+                                        <div className="bg-white p-1 rounded border border-slate-200 shadow-sm">
+                                            {sortOrder === 'asc' ? <ArrowUp size={12} className="text-ocean-600" /> : <ArrowDown size={12} className="text-ocean-600" />}
+                                        </div>
                                     </div>
                                 </th>
-                                <th className="p-4">Tipe</th>
-                                <th className="p-4">Keterangan</th>
-                                <th className="p-4 text-right">Jumlah</th>
-                                <th className="p-4 text-center">Aksi</th>
+                                <th className="p-5">Tipe</th>
+                                <th className="p-5">Keterangan</th>
+                                <th className="p-5 text-right">Jumlah</th>
+                                <th className="p-5 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 text-sm">
+                        <tbody className="divide-y divide-slate-50 text-sm">
                             {processedTransactions.length === 0 ? (
-                                <tr><td colSpan={5} className="p-12 text-center text-gray-500 flex flex-col items-center justify-center gap-2">
-                                    <Search size={32} className="text-gray-300" />
-                                    Tidak ada transaksi pada periode ini.
-                                </td></tr>
+                                <tr>
+                                    <td colSpan={5} className="p-16 text-center text-slate-400">
+                                        <div className="flex flex-col items-center justify-center gap-3">
+                                            <div className="p-4 bg-slate-50 rounded-full text-slate-300">
+                                                <Search size={32} />
+                                            </div>
+                                            <p className="font-medium">Tidak ada transaksi pada periode ini.</p>
+                                        </div>
+                                    </td>
+                                </tr>
                             ) : (
                                 processedTransactions.map((t, idx) => (
-                                    <tr key={`${t.type}-${t.id}-${idx}`} className="hover:bg-gray-50 transition">
-                                        <td className="p-4 text-gray-600 whitespace-nowrap">
-                                            {new Date(t.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'long' })}
+                                    <tr key={`${t.type}-${t.id}-${idx}`} className="hover:bg-slate-50/80 transition-colors group">
+                                        <td className="p-5 text-slate-600 font-semibold whitespace-nowrap">
+                                            {new Date(t.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
                                         </td>
-                                        <td className="p-4">
-                                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${t.type === 'PENDAPATAN' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                                                }`}>
+                                        <td className="p-5">
+                                            <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${t.type === 'PENDAPATAN' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
                                                 {t.type === 'PENDAPATAN' ? 'MASUK' : 'KELUAR'}
                                             </span>
                                         </td>
-                                        <td className="p-4 text-gray-800 font-medium">{t.keterangan}</td>
-                                        <td className={`p-4 text-right font-bold whitespace-nowrap ${t.type === 'PENDAPATAN' ? 'text-green-600' : 'text-red-600'}`}>
+                                        <td className="p-5 text-slate-800 font-medium">{t.keterangan}</td>
+                                        <td className={`p-5 text-right font-extrabold whitespace-nowrap ${t.type === 'PENDAPATAN' ? 'text-emerald-600' : 'text-rose-600'}`}>
                                             {t.type === 'PENDAPATAN' ? '+' : '-'} Rp {t.jumlah.toLocaleString('id-ID')}
                                         </td>
-                                        <td className="p-4 text-center">
-                                            <button onClick={() => handleDelete(t.id, t.type)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition" title="Hapus">
-                                                <Trash2 size={16} />
-                                            </button>
+                                        <td className="p-5 text-center">
+                                            <div className="flex justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                                <button onClick={() => handleDelete(t.id, t.type)} className="p-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus">
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -225,49 +265,56 @@ export default function Keuangan() {
                 </div>
             </div>
 
-            {/* MODAL TAMBAH (Tetap Sama) */}
+            {/* MODAL TAMBAH */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative animate-in fade-in zoom-in duration-200">
-                        <button onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={20} /></button>
-                        <h2 className="text-xl font-bold mb-4 text-gray-800">Catat Transaksi</h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="fixed inset-0 bg-ocean-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-7 relative border border-slate-100"
+                    >
+                        <button onClick={() => setIsModalOpen(false)} className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition bg-slate-50 hover:bg-slate-100 p-1.5 rounded-full"><X size={20} /></button>
+                        <h2 className="text-2xl font-extrabold mb-6 text-slate-800">Catat Transaksi</h2>
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Jenis Transaksi</label>
-                                <div className="grid grid-cols-2 gap-2">
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Jenis Transaksi</label>
+                                <div className="grid grid-cols-2 gap-3">
                                     <button type="button" onClick={() => setFormData({ ...formData, type: 'PENDAPATAN' })}
-                                        className={`py-2 rounded-lg text-sm font-bold border ${formData.type === 'PENDAPATAN' ? 'bg-green-50 border-green-500 text-green-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-                                        Pemasukan
+                                        className={`py-3 rounded-xl text-sm font-bold border-2 transition-all active:scale-95 ${formData.type === 'PENDAPATAN' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
+                                        Pemasukan (Masuk)
                                     </button>
                                     <button type="button" onClick={() => setFormData({ ...formData, type: 'PENGELUARAN' })}
-                                        className={`py-2 rounded-lg text-sm font-bold border ${formData.type === 'PENGELUARAN' ? 'bg-red-50 border-red-500 text-red-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-                                        Pengeluaran
+                                        className={`py-3 rounded-xl text-sm font-bold border-2 transition-all active:scale-95 ${formData.type === 'PENGELUARAN' ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-sm' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
+                                        Pengeluaran (Keluar)
                                     </button>
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
-                                <input required type="date" className="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal</label>
+                                <input required type="date" className="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-ocean-500/20 focus:border-ocean-500 outline-none transition bg-slate-50 focus:bg-white"
                                     value={formData.tanggal} onChange={e => setFormData({ ...formData, tanggal: e.target.value })} />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Jumlah (Rp)</label>
-                                <input required type="number" min="0" className="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={formData.jumlah || ''} onChange={e => setFormData({ ...formData, jumlah: parseFloat(e.target.value) })} />
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Jumlah Uang (Rp)</label>
+                                <input required type="number" min="0" className="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-ocean-500/20 focus:border-ocean-500 outline-none transition bg-slate-50 focus:bg-white"
+                                    value={formData.jumlah || ''} onChange={e => setFormData({ ...formData, jumlah: parseFloat(e.target.value) })} placeholder="0" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Keterangan</label>
-                                <input required placeholder="Contoh: Penjualan Galon / Beli Tisu" className="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Keterangan</label>
+                                <input required placeholder="Contoh: Penjualan Galon / Beli Tisu" className="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-ocean-500/20 focus:border-ocean-500 outline-none transition bg-slate-50 focus:bg-white"
                                     value={formData.keterangan} onChange={e => setFormData({ ...formData, keterangan: e.target.value })} />
                             </div>
-                            <div className="pt-2 flex justify-end gap-2">
-                                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Batal</button>
-                                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Simpan</button>
+                            <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 mt-6">
+                                <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">Batal</button>
+                                <button type="submit" disabled={isLoading} className="px-5 py-2.5 bg-ocean-600 text-white font-bold rounded-xl hover:bg-ocean-700 transition-all active:scale-95 shadow-sm shadow-ocean-600/20 disabled:opacity-50">
+                                    {isLoading ? 'Menyimpan...' : 'Simpan Transaksi'}
+                                </button>
                             </div>
                         </form>
-                    </div>
+                    </motion.div>
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 }

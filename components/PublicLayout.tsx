@@ -10,8 +10,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             {/* Navbar Tetap */}
             <PublicNavbar />
 
-            {/* Konten Utama (diberi padding-top agar tidak tertutup navbar) */}
-            <main className="flex-1 pt-16">
+            {/* Konten Utama (tanpa padding top agar navbar bisa transparan di atas hero section) */}
+            <main className="flex-1">
                 {children}
             </main>
 

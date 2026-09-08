@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logActivity } from '@/lib/logger';
 
 const testimoniSchema = z.object({
     nama: z.string().min(1, "Nama wajib diisi"),
@@ -46,6 +47,9 @@ export async function POST(req: Request) {
         const result = await prisma.testimoni.create({
             data: validatedData
         });
+
+        // Catat ke Log MongoDB
+        await logActivity('TESTIMONI_BARU', { nama: result.nama, rating: result.rating, komentar: result.komentar }, undefined, 'Pelanggan Publik');
 
         return NextResponse.json(result);
     } catch (error) {

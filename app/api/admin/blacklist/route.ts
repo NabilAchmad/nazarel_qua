@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logActivity } from '@/lib/logger';
 
 // Skema Validasi
 const schema = z.object({
@@ -21,6 +22,12 @@ export async function POST(req: Request) {
         const newWord = await prisma.blacklistWord.create({
             data: { word }
         });
+
+        await logActivity(
+            'Tambah Filter Kata',
+            { word, deskripsi: `Menambahkan kata '${word}' ke dalam daftar kata terlarang.` }
+        );
+
         return NextResponse.json(newWord);
     } catch (error) {
         return NextResponse.json({ error: 'Gagal menambah kata / Kata sudah ada' }, { status: 400 });
@@ -32,7 +39,15 @@ export async function DELETE(req: Request) {
         const { searchParams } = new URL(req.url);
         const id = Number(searchParams.get('id'));
 
-        await prisma.blacklistWord.delete({ where: { id } });
+        const wordRecord = await prisma.blacklistWord.findUnique({ where: { id } });
+        if (wordRecord) {
+            await prisma.blacklistWord.delete({ where: { id } });
+            await logActivity(
+                'Hapus Filter Kata',
+                { word: wordRecord.word, deskripsi: `Menghapus kata '${wordRecord.word}' dari daftar kata terlarang.` }
+            );
+        }
+
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json({ error: 'Gagal menghapus' }, { status: 500 });

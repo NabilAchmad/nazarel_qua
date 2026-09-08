@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { logActivity } from '@/lib/logger';
 
 const productSchema = z.object({
     nama: z.string().min(1),
@@ -24,8 +25,13 @@ export async function POST(req: Request) {
         const body = await req.json();
         const data = productSchema.parse(body);
         const product = await prisma.produk.create({ data });
+        
+        // Log to MongoDB
+        await logActivity('CREATE_PRODUK', { produkId: product.id, nama: product.nama }, undefined, 'Sistem');
+
         return NextResponse.json({ ...product, harga: product.harga.toNumber() });
     } catch (e) {
         return NextResponse.json({ error: 'Invalid Data' }, { status: 400 });
+
     }
 }
